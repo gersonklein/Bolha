@@ -1,0 +1,1176 @@
+{
+ "protagonista": "elenco/andarilho.json",
+ "equipe": [
+  {
+   "id": "107e7430",
+   "nome": "Bia",
+   "falas": [
+    "Vai sair mais cedo? Hoje?",
+    "Deixa eu adivinhar: a carta.",
+    "Levei três anos para escrever a minha.",
+    "Eu guardo a minha na gaveta. Faz bem saber que está lá."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/107e7430.json"
+  },
+  {
+   "id": "5b04f8ce",
+   "nome": "Vera",
+   "falas": [
+    "Ela está de bom humor hoje. Vá logo.",
+    "Gostei da decisão. Não vai adiantar, mas gostei.",
+    "Fiz café. Está frio desde ontem.",
+    "Quem vai regar o ficus?"
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/5b04f8ce.json"
+  },
+  {
+   "id": "648f5f9c",
+   "nome": "Nina",
+   "falas": [
+    "Ei! Vai mesmo? Que coragem.",
+    "Me manda uma foto de lá de fora. Do céu, se ainda tiver.",
+    "Hoje é quarta? Parece quarta faz um tempo.",
+    "Tem bolo na copa. Sempre tem. Ninguém sabe quem traz."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/648f5f9c.json"
+  },
+  {
+   "id": "72075b47",
+   "nome": "Seu Aldo",
+   "falas": [
+    "Já pedi demissão quatro vezes.",
+    "Em que ano estamos mesmo?",
+    "Quando entrei, esse corredor era mais curto.",
+    "Você volta. A gente volta."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/72075b47.json"
+  },
+  {
+   "id": "8310b7ac",
+   "nome": "Caio",
+   "falas": [
+    "Já vai tarde.",
+    "Fica com a minha cadeira quando voltar? Digo, se.",
+    "Tem alguém usando o elevador? Faz tempo que não vejo.",
+    "Não conta para o RH que eu estou de boné."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/8310b7ac.json"
+  },
+  {
+   "id": "91cfa2bf",
+   "nome": "Dante",
+   "falas": [
+    "Não olha muito para as lâmpadas.",
+    "Essa porta sempre esteve aí?",
+    "Esqueceu de bater o cartão de novo.",
+    "Você também ouviu isso, ou foi o ar-condicionado?"
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/91cfa2bf.json"
+  },
+  {
+   "id": "92f440bb",
+   "nome": "Otávio",
+   "falas": [
+    "Você assinou o ponto?",
+    "Preciso daquele relatório antes de você ir. Se você for.",
+    "Até segunda.",
+    "Pelo regulamento, são trinta dias de aviso. Ou trinta anos. Não lembro."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/92f440bb.json"
+  },
+  {
+   "id": "9374f3ab",
+   "nome": "Dr. Breno",
+   "falas": [
+    "Meu filho, nessa idade eu também queria sair.",
+    "Ninguém foi demitido aqui desde a fundação.",
+    "Olha a postura.",
+    "O senhor está atrasado para alguma coisa. Todos nós estamos."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/9374f3ab.json"
+  },
+  {
+   "id": "b5a00470",
+   "nome": "Lia",
+   "falas": [
+    "Psiu. Não vai pelo arquivo.",
+    "A impressora estava imprimindo o seu nome hoje cedo.",
+    "Eu sempre soube que seria você.",
+    "Boa noite. Ou bom dia. Tanto faz aqui."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/b5a00470.json"
+  },
+  {
+   "id": "c4bca22e",
+   "nome": "Tomás",
+   "falas": [
+    "E aí? Chegou o dia?",
+    "Se conseguir sair, me escreve.",
+    "Levanta a cabeça. O corredor é grande.",
+    "Eu já tentei pela escada. Acaba aqui de novo."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/c4bca22e.json"
+  },
+  {
+   "id": "e0738f9b",
+   "nome": "Rui",
+   "falas": [
+    "Tem um minuto? Não? Ninguém tem.",
+    "Vamos marcar uma reunião sobre a sua saída.",
+    "Encaminha isso para mim antes de ir.",
+    "Vou colocar você em cópia, para sempre."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/e0738f9b.json"
+  },
+  {
+   "id": "ea88bb65",
+   "nome": "Zuleide",
+   "falas": [
+    "Eu vi esse envelope. Todo mundo viu.",
+    "Boa sorte lá fora.",
+    "Sabia que ninguém nunca voltou para buscar as coisas?",
+    "Deixa a sua planta comigo."
+   ],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/ea88bb65.json"
+  },
+  {
+   "id": "f256ab82",
+   "nome": "Ivo",
+   "falas": [],
+   "mulher": false,
+   "anim": {},
+   "arquivo": "elenco/f256ab82.json"
+  },
+  {
+   "id": "helena",
+   "nome": "Helena",
+   "falas": [
+    "Pode deixar a carta na mesa.",
+    "Você não é o primeiro a tentar hoje.",
+    "Sente-se. Ou não. Dá no mesmo.",
+    "Ainda aqui?"
+   ],
+   "mulher": true,
+   "anim": {},
+   "arquivo": "elenco/helena.json"
+  }
+ ],
+ "protagonista_anim": {},
+ "criaturas": {
+  "magro": {
+   "id": "slender",
+   "nome": "Magro (Slender)",
+   "base": "magro",
+   "rig": "humano",
+   "vel": 1.0,
+   "perfil": {
+    "vel_base": 0.85,
+    "teto_caca": 4.8,
+    "ronda": 1.275,
+    "vai_ao_jogador": 0.35,
+    "bote": true,
+    "pronome": "ele",
+    "chamado": ""
+   },
+   "medidas": {},
+   "andar": {},
+   "anim": {},
+   "malha": "elenco/slender.json"
+  },
+  "cao": {
+   "id": "guara",
+   "nome": "Lobo-guará",
+   "base": "cao",
+   "rig": "guara",
+   "vel": 1.0,
+   "perfil": {
+    "vel_base": 1.25,
+    "teto_caca": 4.8,
+    "ronda": 1.875,
+    "vai_ao_jogador": 0.35,
+    "bote": true,
+    "pronome": "ele",
+    "chamado": ""
+   },
+   "medidas": {},
+   "andar": {},
+   "anim": {},
+   "malha": "elenco/guara.json"
+  },
+  "aranha": {
+   "id": "aranha",
+   "nome": "Aranha",
+   "base": "aranha",
+   "rig": "aranha",
+   "vel": 1.0,
+   "perfil": {
+    "vel_base": 1.0,
+    "teto_caca": 4.8,
+    "ronda": 1.5,
+    "vai_ao_jogador": 0.35,
+    "bote": true,
+    "pronome": "ela",
+    "chamado": ""
+   },
+   "medidas": {},
+   "andar": {},
+   "anim": {},
+   "malha": "elenco/aranha.json"
+  },
+  "tripe": {
+   "id": "tripe",
+   "nome": "Tripé",
+   "base": "tripe",
+   "rig": "tripe",
+   "vel": 1.0,
+   "perfil": {
+    "vel_base": 0.6,
+    "teto_caca": 4.8,
+    "ronda": 1.8,
+    "vai_ao_jogador": 0.8,
+    "bote": true,
+    "pronome": "ele",
+    "chamado": ""
+   },
+   "medidas": {
+    "tamanho": 2.6,
+    "corpo_y": -0.25,
+    "bodyY": 4.4,
+    "hipR": 0.62,
+    "coxa": 0.5,
+    "femur": 2.7,
+    "tibia": 2.9,
+    "tarsus": 0.45,
+    "reach": 3.2,
+    "stepTh": 1.3,
+    "stepH": 1.15,
+    "lead": 1.7,
+    "inertia": 2.5,
+    "turn": 0.3,
+    "grossura": 1.0
+   },
+   "andar": {},
+   "anim": {},
+   "malha": null
+  },
+  "bando": {
+   "id": "corvos",
+   "nome": "Corvos",
+   "base": "bando",
+   "rig": "passaro",
+   "vel": 1.0,
+   "perfil": {
+    "vel_base": 1.45,
+    "teto_caca": 5.6,
+    "ronda": 2.175,
+    "vai_ao_jogador": 0.35,
+    "bote": false,
+    "pronome": "eles",
+    "chamado": "os corvos"
+   },
+   "medidas": {
+    "tamanho": 0.62,
+    "asa": 0.25,
+    "quantos": 18,
+    "bater": 20,
+    "abrir": 0.8,
+    "voo_alto": 4.5,
+    "voo_baixo": 0.7,
+    "roda": 1.0
+   },
+   "andar": {},
+   "anim": {},
+   "malha": null
+  }
+ },
+ "gato": {
+  "tamanho": 1.35,
+  "velocidade": 0.9,
+  "sentar": 0.3,
+  "sentar_min": 2,
+  "sentar_max": 7,
+  "miado_min": 8,
+  "miado_max": 22,
+  "raio_seguro": 6,
+  "achar": 3,
+  "sanidade_achar": 100,
+  "sanidade_perto": 4,
+  "sanidade_colado": 8,
+  "carinho": 25,
+  "escuro": 0.5
+ },
+ "broto": {
+  "alcance": 3.5,
+  "sanidade": 10,
+  "esquece": 8
+ },
+ "clipes": {},
+ "clipes_jogo": {
+  "Idle_Neutral": {
+   "loop": true,
+   "dur": 3.2,
+   "keys": [
+    "Neutral",
+    "Inhale",
+    "Breath_Peak",
+    "Exhale"
+   ],
+   "poses": {
+    "Neutral": {
+     "armZ_L": 2,
+     "armZ_R": 2,
+     "fore_L": 6,
+     "fore_R": 7
+    },
+    "Inhale": {
+     "armZ_L": 3,
+     "armZ_R": 3,
+     "fore_L": 6,
+     "fore_R": 7,
+     "spine": -2,
+     "hipsY": 0.01
+    },
+    "Breath_Peak": {
+     "armZ_L": 4,
+     "armZ_R": 4,
+     "fore_L": 7,
+     "fore_R": 8,
+     "spine": -3,
+     "head": -3,
+     "hipsY": 0.015
+    },
+    "Exhale": {
+     "armZ_L": 2,
+     "armZ_R": 2,
+     "fore_L": 5,
+     "fore_R": 6,
+     "spine": 1,
+     "hipsY": -0.005
+    }
+   },
+   "do_jogo": true,
+   "descricao": "parado (respirando)"
+  },
+  "Walk_Neutral": {
+   "loop": true,
+   "dur": 0.9,
+   "keys": [
+    "Contact_L",
+    "Down_L",
+    "Passing_R",
+    "Up_L",
+    "Contact_R",
+    "Down_R",
+    "Passing_L",
+    "Up_R"
+   ],
+   "poses": {
+    "Contact_L": {
+     "leg_L": 30,
+     "shin_L": 4,
+     "leg_R": -27,
+     "shin_R": 16,
+     "arm_L": -22,
+     "arm_R": 22,
+     "fore_L": 10,
+     "fore_R": 18,
+     "spine": 3,
+     "hipsY": -0.09
+    },
+    "Down_L": {
+     "leg_L": 17,
+     "shin_L": 12,
+     "leg_R": -14,
+     "shin_R": 38,
+     "arm_L": -12,
+     "arm_R": 12,
+     "fore_L": 10,
+     "fore_R": 15,
+     "hipsY": -0.05,
+     "spine": 4
+    },
+    "Passing_R": {
+     "leg_L": 0,
+     "shin_L": 3,
+     "leg_R": 14,
+     "shin_R": 62,
+     "arm_L": 0,
+     "arm_R": 0,
+     "fore_L": 10,
+     "fore_R": 12,
+     "hipsY": -0.005,
+     "spine": 3
+    },
+    "Up_L": {
+     "leg_L": -15,
+     "shin_L": 3,
+     "leg_R": 27,
+     "shin_R": 30,
+     "arm_L": 11,
+     "arm_R": -11,
+     "fore_L": 12,
+     "fore_R": 12,
+     "hipsY": -0.03,
+     "spine": 2
+    },
+    "Contact_R": {
+     "leg_R": 30,
+     "shin_R": 4,
+     "leg_L": -27,
+     "shin_L": 16,
+     "arm_R": -22,
+     "arm_L": 22,
+     "fore_R": 10,
+     "fore_L": 18,
+     "spine": 3,
+     "hipsY": -0.09
+    },
+    "Down_R": {
+     "leg_R": 17,
+     "shin_R": 12,
+     "leg_L": -14,
+     "shin_L": 38,
+     "arm_R": -12,
+     "arm_L": 12,
+     "fore_R": 10,
+     "fore_L": 15,
+     "hipsY": -0.05,
+     "spine": 4
+    },
+    "Up_R": {
+     "leg_R": -15,
+     "shin_R": 3,
+     "leg_L": 27,
+     "shin_L": 30,
+     "arm_R": 11,
+     "arm_L": -11,
+     "fore_R": 12,
+     "fore_L": 12,
+     "hipsY": -0.03,
+     "spine": 2
+    },
+    "Passing_L": {
+     "leg_R": 0,
+     "shin_R": 3,
+     "leg_L": 14,
+     "shin_L": 62,
+     "arm_R": 0,
+     "arm_L": 0,
+     "fore_R": 10,
+     "fore_L": 12,
+     "hipsY": -0.005,
+     "spine": 3
+    }
+   },
+   "do_jogo": true,
+   "descricao": "andar"
+  },
+  "Run_Neutral": {
+   "loop": true,
+   "dur": 0.62,
+   "keys": [
+    "Contact_L",
+    "Down_L",
+    "Push_Off_L",
+    "Flight_Peak",
+    "Contact_R",
+    "Down_R",
+    "Push_Off_R",
+    "Flight_Peak_2"
+   ],
+   "poses": {
+    "Contact_L": {
+     "leg_L": 35,
+     "shin_L": 15,
+     "leg_R": -25,
+     "shin_R": 40,
+     "arm_L": -40,
+     "arm_R": 45,
+     "fore_L": 70,
+     "fore_R": 80,
+     "spine": 12
+    },
+    "Down_L": {
+     "leg_L": 20,
+     "shin_L": 40,
+     "leg_R": -10,
+     "shin_R": 80,
+     "arm_L": -30,
+     "arm_R": 30,
+     "fore_L": 75,
+     "fore_R": 80,
+     "spine": 14,
+     "hipsY": -0.1
+    },
+    "Push_Off_L": {
+     "leg_L": -35,
+     "shin_L": 5,
+     "leg_R": 50,
+     "shin_R": 80,
+     "arm_L": 40,
+     "arm_R": -40,
+     "fore_L": 80,
+     "fore_R": 70,
+     "spine": 12,
+     "hipsY": 0.02
+    },
+    "Flight_Peak": {
+     "leg_L": -20,
+     "shin_L": 60,
+     "leg_R": 55,
+     "shin_R": 30,
+     "arm_L": 30,
+     "arm_R": -30,
+     "fore_L": 75,
+     "fore_R": 70,
+     "spine": 10,
+     "hipsY": 0.12
+    },
+    "Contact_R": {
+     "leg_R": 35,
+     "shin_R": 15,
+     "leg_L": -25,
+     "shin_L": 40,
+     "arm_R": -40,
+     "arm_L": 45,
+     "fore_R": 70,
+     "fore_L": 80,
+     "spine": 12
+    },
+    "Down_R": {
+     "leg_R": 20,
+     "shin_R": 40,
+     "leg_L": -10,
+     "shin_L": 80,
+     "arm_R": -30,
+     "arm_L": 30,
+     "fore_R": 75,
+     "fore_L": 80,
+     "spine": 14,
+     "hipsY": -0.1
+    },
+    "Push_Off_R": {
+     "leg_R": -35,
+     "shin_R": 5,
+     "leg_L": 50,
+     "shin_L": 80,
+     "arm_R": 40,
+     "arm_L": -40,
+     "fore_R": 80,
+     "fore_L": 70,
+     "spine": 12,
+     "hipsY": 0.02
+    },
+    "Flight_Peak_2": {
+     "leg_R": -20,
+     "shin_R": 60,
+     "leg_L": 55,
+     "shin_L": 30,
+     "arm_R": 30,
+     "arm_L": -30,
+     "fore_R": 75,
+     "fore_L": 70,
+     "spine": 10,
+     "hipsY": 0.12
+    }
+   },
+   "do_jogo": true,
+   "descricao": "correr"
+  },
+  "Hit_Front_Light": {
+   "loop": false,
+   "dur": 0.5,
+   "keys": [
+    "Idle",
+    "Impact_Contact",
+    "Chest_Recoil",
+    "Small_Counterstep",
+    "Recovery"
+   ],
+   "poses": {
+    "Idle": {
+     "armZ_L": 2,
+     "armZ_R": 2,
+     "fore_L": 6,
+     "fore_R": 7
+    },
+    "Impact_Contact": {
+     "spine": -15,
+     "head": -20,
+     "armZ_L": 25,
+     "armZ_R": 25,
+     "fore_L": 30,
+     "fore_R": 30
+    },
+    "Chest_Recoil": {
+     "spine": -25,
+     "head": -10,
+     "hipsY": -0.03,
+     "leg_R": -25,
+     "shin_R": 15,
+     "armZ_L": 30,
+     "armZ_R": 30,
+     "fore_L": 40,
+     "fore_R": 40
+    },
+    "Small_Counterstep": {
+     "spine": -8,
+     "leg_R": -10,
+     "shin_R": 10,
+     "hipsY": -0.04,
+     "armZ_L": 12,
+     "armZ_R": 12
+    },
+    "Recovery": {
+     "armZ_L": 2,
+     "armZ_R": 2,
+     "fore_L": 6,
+     "fore_R": 7
+    }
+   },
+   "do_jogo": true,
+   "descricao": "levar um golpe"
+  },
+  "Collapse_Knees": {
+   "loop": false,
+   "dur": 1.4,
+   "keys": [
+    "Standing",
+    "Pain_Grab",
+    "Leg_Buckle",
+    "Knee_Ground_Contact",
+    "Hunched_Hold"
+   ],
+   "poses": {
+    "Standing": {
+     "armZ_L": 2,
+     "armZ_R": 2,
+     "fore_L": 6,
+     "fore_R": 7
+    },
+    "Pain_Grab": {
+     "spine": 25,
+     "arm_L": 40,
+     "fore_L": 95,
+     "arm_R": 40,
+     "fore_R": 95,
+     "hipsY": -0.03
+    },
+    "Leg_Buckle": {
+     "spine": 30,
+     "arm_L": 40,
+     "fore_L": 95,
+     "arm_R": 40,
+     "fore_R": 95,
+     "leg_L": 50,
+     "shin_L": 90,
+     "leg_R": 50,
+     "shin_R": 90,
+     "hipsY": -0.3
+    },
+    "Knee_Ground_Contact": {
+     "spine": 30,
+     "arm_L": 20,
+     "fore_L": 40,
+     "arm_R": 20,
+     "fore_R": 40,
+     "leg_L": 5,
+     "shin_L": 92,
+     "leg_R": 5,
+     "shin_R": 92,
+     "hipsY": -0.48
+    },
+    "Hunched_Hold": {
+     "spine": 55,
+     "head": 30,
+     "arm_L": 10,
+     "fore_L": 10,
+     "arm_R": 10,
+     "fore_R": 10,
+     "leg_L": 5,
+     "shin_L": 92,
+     "leg_R": 5,
+     "shin_R": 92,
+     "hipsY": -0.5
+    }
+   },
+   "do_jogo": true,
+   "descricao": "cair de joelhos"
+  },
+  "Sit_Idle": {
+   "loop": true,
+   "dur": 3.6,
+   "keys": [
+    "Seated",
+    "Breath"
+   ],
+   "poses": {
+    "Seated": {
+     "leg_L": 88,
+     "shin_L": 88,
+     "leg_R": 88,
+     "shin_R": 88,
+     "arm_L": 30,
+     "fore_L": 45,
+     "arm_R": 30,
+     "fore_R": 45,
+     "spine": 4,
+     "head": 6
+    },
+    "Breath": {
+     "leg_L": 88,
+     "shin_L": 88,
+     "leg_R": 88,
+     "shin_R": 88,
+     "arm_L": 30,
+     "fore_L": 47,
+     "arm_R": 30,
+     "fore_R": 47,
+     "spine": 1,
+     "head": 2,
+     "hipsY": 0.01
+    }
+   },
+   "do_jogo": true,
+   "descricao": "sentado"
+  },
+  "Sit_Type": {
+   "loop": true,
+   "dur": 0.5,
+   "keys": [
+    "A",
+    "B"
+   ],
+   "poses": {
+    "A": {
+     "leg_L": 88,
+     "shin_L": 88,
+     "leg_R": 88,
+     "shin_R": 88,
+     "arm_L": 55,
+     "fore_L": 40,
+     "arm_R": 55,
+     "fore_R": 40,
+     "spine": 8,
+     "head": 12
+    },
+    "B": {
+     "leg_L": 88,
+     "shin_L": 88,
+     "leg_R": 88,
+     "shin_R": 88,
+     "arm_L": 57,
+     "fore_L": 38,
+     "arm_R": 53,
+     "fore_R": 42,
+     "spine": 9,
+     "head": 13
+    }
+   },
+   "do_jogo": true,
+   "descricao": "digitando sentado"
+  },
+  "Smoke_Seated": {
+   "loop": true,
+   "dur": 7.0,
+   "keys": [
+    "Rest",
+    "Rest",
+    "Lift",
+    "Puff",
+    "Exhale",
+    "Rest"
+   ],
+   "poses": {
+    "Rest": {
+     "leg_L": 85,
+     "shin_L": 80,
+     "leg_R": 100,
+     "shin_R": 100,
+     "arm_L": 30,
+     "fore_L": 50,
+     "arm_R": 25,
+     "fore_R": 55,
+     "spine": -6,
+     "head": 5
+    },
+    "Lift": {
+     "leg_L": 85,
+     "shin_L": 80,
+     "leg_R": 100,
+     "shin_R": 100,
+     "arm_L": 30,
+     "fore_L": 50,
+     "arm_R": 30,
+     "fore_R": 140,
+     "armZ_R": -8,
+     "spine": -6,
+     "head": -2
+    },
+    "Puff": {
+     "leg_L": 85,
+     "shin_L": 80,
+     "leg_R": 100,
+     "shin_R": 100,
+     "arm_L": 30,
+     "fore_L": 50,
+     "arm_R": 32,
+     "fore_R": 145,
+     "armZ_R": -8,
+     "spine": -8,
+     "head": -6
+    },
+    "Exhale": {
+     "leg_L": 85,
+     "shin_L": 80,
+     "leg_R": 100,
+     "shin_R": 100,
+     "arm_L": 30,
+     "fore_L": 50,
+     "arm_R": 25,
+     "fore_R": 60,
+     "spine": -10,
+     "head": -22
+    }
+   },
+   "do_jogo": true,
+   "descricao": "fumar sentada (a mulher que fuma)"
+  },
+  "Canto": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "leg_L": 105,
+     "shin_L": 65,
+     "leg_R": 100,
+     "shin_R": 70,
+     "armZ_L": 6,
+     "armZ_R": 6,
+     "arm_L": 18,
+     "fore_L": 25,
+     "arm_R": 14,
+     "fore_R": 20,
+     "spine": 22,
+     "head": 38
+    }
+   },
+   "do_jogo": true,
+   "descricao": "encolhida no canto (a mulher do canto)"
+  },
+  "Canto_Estende": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "leg_L": 105,
+     "shin_L": 65,
+     "leg_R": 100,
+     "shin_R": 70,
+     "armZ_L": 6,
+     "armZ_R": 6,
+     "arm_L": 18,
+     "fore_L": 25,
+     "arm_R": 80,
+     "fore_R": 10,
+     "spine": 6,
+     "head": -12
+    }
+   },
+   "do_jogo": true,
+   "descricao": "estendendo a pilha (a mulher do canto)"
+  },
+  "Broto_Ajoelhada": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "leg_L": 70,
+     "shin_L": 150,
+     "leg_R": 62,
+     "shin_R": 155,
+     "armZ_R": 18,
+     "arm_R": 8,
+     "fore_R": 6,
+     "arm_L": 34,
+     "fore_L": 4,
+     "spine": -6,
+     "head": -38,
+     "twist": 10,
+     "hipsY": -0.62
+    }
+   },
+   "do_jogo": true,
+   "descricao": "ajoelhada, cabeça para trás (a figura dos brotos)"
+  },
+  "Cut_Volta": {
+   "loop": true,
+   "dur": 6.0,
+   "keys": [
+    "Frente",
+    "Esq",
+    "Frente",
+    "Dir"
+   ],
+   "poses": {
+    "Frente": {
+     "armZ_L": 6,
+     "armZ_R": 6,
+     "fore_L": 10,
+     "fore_R": 12,
+     "head": -3
+    },
+    "Esq": {
+     "armZ_L": 6,
+     "armZ_R": 6,
+     "fore_L": 12,
+     "fore_R": 10,
+     "twist": 20,
+     "head": -5
+    },
+    "Dir": {
+     "armZ_L": 6,
+     "armZ_R": 6,
+     "fore_L": 10,
+     "fore_R": 12,
+     "twist": -20,
+     "head": -5
+    }
+   },
+   "do_jogo": true,
+   "descricao": "cutscene: olhar em volta"
+  },
+  "Cut_Cima": {
+   "loop": true,
+   "dur": 4.0,
+   "keys": [
+    "A",
+    "B"
+   ],
+   "poses": {
+    "A": {
+     "armZ_L": 8,
+     "armZ_R": 8,
+     "fore_L": 12,
+     "fore_R": 12,
+     "head": -34,
+     "spine": -8
+    },
+    "B": {
+     "armZ_L": 8,
+     "armZ_R": 8,
+     "fore_L": 13,
+     "fore_R": 13,
+     "head": -38,
+     "spine": -10,
+     "hipsY": 0.006
+    }
+   },
+   "do_jogo": true,
+   "descricao": "cutscene: olhar para cima"
+  },
+  "Cut_Alerta": {
+   "loop": true,
+   "dur": 2.2,
+   "keys": [
+    "A",
+    "B"
+   ],
+   "poses": {
+    "A": {
+     "spine": -5,
+     "head": -3,
+     "arm_L": 8,
+     "arm_R": 8,
+     "armZ_L": 11,
+     "armZ_R": 11,
+     "fore_L": 30,
+     "fore_R": 30,
+     "leg_L": 8,
+     "shin_L": 6,
+     "leg_R": -14,
+     "shin_R": 16,
+     "hipsY": -0.03
+    },
+    "B": {
+     "spine": -6,
+     "head": -5,
+     "arm_L": 9,
+     "arm_R": 9,
+     "armZ_L": 12,
+     "armZ_R": 12,
+     "fore_L": 32,
+     "fore_R": 32,
+     "leg_L": 8,
+     "shin_L": 6,
+     "leg_R": -14,
+     "shin_R": 16,
+     "hipsY": -0.035
+    }
+   },
+   "do_jogo": true,
+   "descricao": "cutscene: alerta"
+  },
+  "Magro_Base": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "spine": -5.0,
+     "armZ_L": 5.0,
+     "armZ_R": 5.0,
+     "fore_L": 8.0,
+     "fore_R": 8.0
+    }
+   },
+   "do_jogo": true,
+   "descricao": "postura de sempre (somada ao andar)"
+  },
+  "Magro_Alerta": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "spine": -9.0,
+     "head": -12.0,
+     "hipsY": 0.02,
+     "leg_L": -3.0,
+     "leg_R": -3.0,
+     "shin_L": -8.0,
+     "shin_R": -8.0,
+     "armZ_L": 9.0,
+     "armZ_R": 9.0,
+     "fore_L": 14.0,
+     "fore_R": 14.0
+    }
+   },
+   "do_jogo": true,
+   "descricao": "ouviu um som: cresce e fica imóvel"
+  },
+  "Magro_Caca": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "spine": 12.0,
+     "head": -14.0,
+     "arm_L": 42.0,
+     "arm_R": 36.0,
+     "fore_L": 28.0,
+     "fore_R": 34.0,
+     "armZ_L": 4.0,
+     "armZ_R": 4.0
+    }
+   },
+   "do_jogo": true,
+   "descricao": "caçando: inclinado, garras para o som"
+  },
+  "Magro_Aviso": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "spine": 16.0,
+     "hipsY": -0.12,
+     "arm_L": -34.0,
+     "arm_R": -34.0,
+     "armZ_L": 24.0,
+     "armZ_R": 24.0,
+     "fore_L": 46.0,
+     "fore_R": 46.0,
+     "leg_L": 32.0,
+     "leg_R": 32.0,
+     "shin_L": 62.0,
+     "shin_R": 62.0
+    }
+   },
+   "do_jogo": true,
+   "descricao": "aviso: encolhe antes do bote"
+  },
+  "Magro_Bote": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "spine": 20.0,
+     "head": -18.0,
+     "arm_L": 88.0,
+     "arm_R": 88.0,
+     "fore_L": 12.0,
+     "fore_R": 12.0
+    }
+   },
+   "do_jogo": true,
+   "descricao": "bote: os braços disparam"
+  },
+  "Magro_Luz": {
+   "loop": true,
+   "dur": 1.0,
+   "keys": [
+    "Pose"
+   ],
+   "poses": {
+    "Pose": {
+     "spine": -16.0,
+     "head": 16.0,
+     "arm_L": 78.0,
+     "arm_R": 62.0,
+     "fore_L": 112.0,
+     "fore_R": 104.0,
+     "armZ_L": -6.0,
+     "armZ_R": -6.0
+    }
+   },
+   "do_jogo": true,
+   "descricao": "sob a lanterna: cobre o rosto"
+  }
+ }
+}

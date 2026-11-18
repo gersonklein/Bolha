@@ -1,0 +1,322 @@
+{
+  "fonte": "../../index.html",
+  "paredes": [
+    {
+      "id": "__forja_edificio",
+      "nome": "Parede de edifício",
+      "padrao": "liso",
+      "papel": "principal",
+      "cls": "N",
+      "v": 0.8,
+      "topo_cls": "AZ",
+      "topo_v": 0.05,
+      "rodape": true
+    },
+    {
+      "id": "__forja_concreto",
+      "nome": "Concreto",
+      "padrao": "concreto",
+      "papel": "corredor",
+      "cls": "CY",
+      "v": 0.62,
+      "topo_cls": "AZ",
+      "topo_v": 0.04
+    },
+    {
+      "id": "__forja_sebe",
+      "nome": "Sebe vegetal",
+      "padrao": "sebe",
+      "papel": "externo",
+      "cls": "VG",
+      "v": 0.3,
+      "topo_cls": "VG",
+      "topo_v": 0.324,
+      "variacao": 0.12
+    },
+    {
+      "id": "__forja_muro",
+      "nome": "Muro de pedra",
+      "padrao": "blocos",
+      "papel": "externo",
+      "cls": "PD",
+      "v": 0.5,
+      "topo_cls": "PD",
+      "topo_v": 0.5,
+      "bloco": 0.8,
+      "junta": 0.02
+    }
+  ],
+  "pisos": [
+    {
+      "id": "__forja_ladrilho",
+      "tipo": "ladrilho",
+      "nome": "Ladrilho",
+      "padrao": "ladrilho",
+      "papel": "principal",
+      "cls": "CL",
+      "v": 0.82,
+      "cls2": "CL",
+      "v2": 0.697,
+      "tam": 0.6,
+      "gap": 0.02,
+      "ruido": 0.3
+    },
+    {
+      "id": "__forja_concreto",
+      "tipo": "concreto",
+      "nome": "Concreto",
+      "padrao": "placas",
+      "papel": "principal",
+      "cls": "CL",
+      "v": 0.7,
+      "cls2": "CL",
+      "v2": 0.595,
+      "tam": 0.6,
+      "gap": 0.02,
+      "ruido": 0.3
+    },
+    {
+      "id": "__forja_carpete",
+      "tipo": "carpete",
+      "nome": "Carpete",
+      "padrao": "carpete",
+      "papel": "sala",
+      "cls": "N",
+      "v": 0.82,
+      "cls2": "N",
+      "v2": 0.697,
+      "tam": 0.6,
+      "gap": 0.02,
+      "ruido": 0.3
+    },
+    {
+      "id": "__forja_cascalho",
+      "tipo": "cascalho",
+      "nome": "Cascalho",
+      "padrao": "organico",
+      "papel": "externo",
+      "cls": "CL",
+      "v": 0.72,
+      "cls2": "CL",
+      "v2": 0.612,
+      "tam": 1.2,
+      "gap": 0.02,
+      "ruido": 0.3
+    },
+    {
+      "id": "__forja_relva",
+      "tipo": "relva",
+      "nome": "Relva",
+      "padrao": "organico",
+      "papel": "externo",
+      "cls": "VG",
+      "v": 0.5,
+      "cls2": "VG",
+      "v2": 0.425,
+      "tam": 0.6,
+      "gap": 0.02,
+      "ruido": 0.3
+    },
+    {
+      "id": "__forja_asfalto",
+      "tipo": "asfalto",
+      "nome": "Asfalto",
+      "padrao": "liso",
+      "papel": "via",
+      "cls": "AZ",
+      "v": 0.34,
+      "cls2": "AZ",
+      "v2": 0.28900000000000003,
+      "tam": 0.6,
+      "gap": 0.02,
+      "ruido": 0.3
+    }
+  ],
+  "salas": {
+    "trabalho": {
+      "piso": "base",
+      "min": 108
+    },
+    "escritorio": {
+      "piso": "base",
+      "min": 108
+    },
+    "maquinas": {
+      "piso": "base",
+      "min": 108
+    },
+    "reuniao": {
+      "piso": "carpete"
+    },
+    "estar": {
+      "piso": "carpete"
+    },
+    "vazio": {
+      "piso": "carpete"
+    },
+    "salao": {
+      "piso": "carpete",
+      "min": 180
+    },
+    "piscina": {
+      "piso": "ladrilho"
+    },
+    "mata": {
+      "piso": "cascalho"
+    },
+    "copa": {
+      "piso": "base"
+    },
+    "cafe": {
+      "piso": "base"
+    },
+    "arquivo": {
+      "piso": "base"
+    },
+    "corredor": {
+      "piso": "base"
+    },
+    "circulo": {
+      "piso": "base"
+    },
+    "tvs": {
+      "piso": "base"
+    },
+    "rh": {
+      "piso": "carpete"
+    }
+  },
+  "temas": {
+    "jogo_nivel_0": {
+      "piso": "ladrilho",
+      "parede": "edificio",
+      "altura": 2.6,
+      "escuro": 0.7,
+      "quebradas": 0.07,
+      "pisca": 0.12,
+      "salas": {
+        "trabalho": 3,
+        "maquinas": 1.6,
+        "reuniao": 1,
+        "estar": 1,
+        "copa": 1,
+        "arquivo": 1,
+        "vazio": 1.3,
+        "salao": 0.8
+      }
+    },
+    "jogo_nivel_1": {
+      "piso": "concreto",
+      "parede": "edificio",
+      "altura": 3,
+      "escuro": 0.6,
+      "quebradas": 0.18,
+      "pisca": 0.22,
+      "salas": {
+        "arquivo": 3,
+        "maquinas": 2,
+        "vazio": 2,
+        "salao": 1.5
+      }
+    },
+    "jogo_nivel_2": {
+      "piso": "concreto",
+      "parede": "concreto",
+      "altura": 2.6,
+      "escuro": 0.62,
+      "quebradas": 0.1,
+      "pisca": 0.2,
+      "salas": {
+        "vazio": 2,
+        "circulo": 0.8,
+        "tvs": 1.5,
+        "mata": 2
+      }
+    },
+    "jogo_nivel_3": {
+      "piso": "relva",
+      "parede": "muro",
+      "altura": 2.6,
+      "aberto": true
+    },
+    "jogo_nivel_4": {
+      "piso": "relva",
+      "parede": "muro",
+      "altura": 2.6,
+      "aberto": true
+    },
+    "jogo_prologo": {
+      "piso": "ladrilho",
+      "parede": "edificio",
+      "altura": 2.6,
+      "prologo": true,
+      "escuro": 9,
+      "quebradas": 0,
+      "pisca": 0,
+      "salas": {
+        "trabalho": 3,
+        "maquinas": 1.6,
+        "reuniao": 1,
+        "estar": 1,
+        "copa": 1,
+        "arquivo": 1,
+        "vazio": 1.3,
+        "salao": 0.8
+      }
+    }
+  },
+  "elementos_por_estilo": {
+    "jardim_labirinto": [
+      "torre",
+      "tower"
+    ],
+    "praca": [
+      "arvore",
+      "tree",
+      "banco",
+      "bench",
+      "canteiro",
+      "planter",
+      "fonte",
+      "fountain",
+      "planta",
+      "plant",
+      "arbusto"
+    ],
+    "campo": [
+      "cadeira",
+      "chair",
+      "torre",
+      "tower"
+    ],
+    "espelhos": [
+      "espelho",
+      "mirror",
+      "pedra",
+      "stone",
+      "rocha",
+      "poca",
+      "puddle"
+    ],
+    "canal": [
+      "pedra",
+      "stone",
+      "rocha",
+      "tronco",
+      "log",
+      "entulho",
+      "debris"
+    ],
+    "estrada": [
+      "poste",
+      "pole",
+      "lamp",
+      "carro",
+      "car",
+      "predio",
+      "building",
+      "galpao",
+      "bus"
+    ]
+  }
+}

@@ -1,0 +1,400 @@
+- Um eu pode nascer de matéria que não tem eu nenhum.
+- A vida é um padrão que surge de peças sem vida.
+- A chave da consciência não é a matéria do cérebro, mas os padrões nela.
+- O cérebro é um objeto físico feito de componentes inanimados.
+- O que nos torna alguém não é a substância, mas a forma como ela se organiza.
+- Símbolos sem sentido podem ganhar sentido apesar de si mesmos.
+- O significado aparece sempre que um padrão espelha o mundo.
+- Espelhar a realidade é o que significa ter significado.
+- Quanto mais fiel o reflexo, mais profundo o significado.
+- Uma escrita desconhecida parece apenas desenho até aprendermos a lê-la.
+- Até a língua mais rica pode parecer vazia para quem não a entende.
+- Não existe mágica escondida no cérebro, apenas padrões extraordinários.
+- Nem todo padrão é consciente, mas toda consciência é um padrão.
+- Um laço estranho é subir degraus e, de repente, estar de volta ao início.
+- A consciência talvez seja um laço que olha para si mesmo.
+- Muitas vezes, a coisa que construímos para impedir algo acaba por revelá-lo.
+- Toda muralha contra paradoxos tem uma fresta.
+- Quem fala de si mesmo cria um laço.
+- A autorreferência é inevitável em qualquer sistema rico o bastante.
+- Um sistema capaz de se descrever adquire uma espécie de eu.
+- Números podem falar sobre números, e assim falar sobre qualquer coisa.
+- Ideias de áreas distantes muitas vezes são variações do mesmo tema.
+- Uma ideia profunda aparece disfarçada em muitos lugares diferentes.
+- Um tema simples pode gerar uma obra infinita.
+- Improvisar é responder a um tema com a própria voz.
+- A melhor resposta a um desafio às vezes chega depois, com calma.
+- Uma melodia pode conversar consigo mesma.
+- Imitar é uma forma de criar.
+- O mesmo tema, invertido ou mais lento, ainda é o mesmo tema.
+- A beleza nasce da tensão entre regra e liberdade.
+- Toda boa estrutura esconde um jogo.
+- Às vezes a música sobe sem parar e, ainda assim, volta ao começo.
+- O infinito pode caber em algo finito.
+- Uma imagem pode mostrar o impossível como se fosse natural.
+- Duas mãos podem desenhar uma à outra.
+- Uma escada pode subir para sempre sem chegar a lugar algum.
+- A água pode cair eternamente e voltar ao topo, ao menos no papel.
+- Formas podem se transformar devagar até virarem outra coisa.
+- Toda frase que diz ser falsa nos faz tropeçar.
+- Uma frase pode negar a si mesma e nos deixar sem chão.
+- Há verdades que nenhuma prova consegue alcançar.
+- Ser verdadeiro e ser demonstrável não são a mesma coisa.
+- Nenhum sistema de regras captura toda a verdade.
+- Todo sistema poderoso tem pontos cegos sobre si mesmo.
+- O sonho de uma explicação completa é belo, mas impossível.
+- Os números primos nunca acabam.
+- Existem infinitos maiores que outros infinitos.
+- Uma prova é uma ponte de certezas.
+- Até a matemática tem limites.
+- Os limites de um sistema só aparecem quando ele tenta olhar para si mesmo.
+- Máquinas podem manipular muito mais do que números.
+- Uma máquina segue regras, mas as regras podem surpreender quem as escreveu.
+- Pensar é, em parte, saber quando parar de seguir regras.
+- Perguntar se uma máquina pode pensar é perguntar o que é pensar.
+- Um paradoxo é um convite para olhar de outro nível.
+- O movimento parece impossível quando é dividido em infinitos pedaços.
+- Dividir algo infinitamente não o torna inalcançável.
+- Às vezes o raciocínio exige que paremos de justificar e simplesmente ajamos.
+- Toda regra precisa de outra regra que diga como usá-la, até alguém simplesmente agir.
+- Há um momento em que a lógica precisa de confiança.
+- Seguir regras às cegas é diferente de entender o que se faz.
+- Inteligência é perceber quando uma tarefa não leva a lugar nenhum.
+- Quem só obedece às regras nunca vê o padrão que elas formam.
+- Sair do sistema é o primeiro passo para compreendê-lo.
+- Todo jogo tem um dentro e um fora.
+- Observar de fora revela o que de dentro é invisível.
+- Uma máquina pode repetir a mesma coisa para sempre sem se entediar.
+- O tédio é um sinal de inteligência.
+- Nem todo enigma tem solução, e saber disso já é uma solução.
+- Às vezes, provar que algo é impossível é a melhor resposta.
+- Uma regra simples pode produzir consequências imprevisíveis.
+- Um axioma é uma verdade que aceitamos para começar.
+- Um teorema é aquilo que as regras conseguem produzir.
+- Saber se algo pode ser produzido nem sempre é fácil.
+- Um bom método decide em tempo finito.
+- O significado de um símbolo vem do papel que ele cumpre.
+- Um símbolo não significa nada sozinho, só em relação aos outros.
+- Quando duas estruturas combinam, uma passa a explicar a outra.
+- Encontrar uma correspondência é encontrar um significado.
+- Entender é reconhecer a mesma forma em coisas diferentes.
+- A forma pode carregar o sentido sem que ninguém o coloque ali.
+- Interpretar é escolher como ler uma estrutura.
+- Uma mesma estrutura pode ter muitas leituras.
+- Algumas interpretações iluminam, outras apenas confundem.
+- A verdade de um sistema depende de como o lemos.
+- A matemática parece ser a mesma em qualquer canto do universo.
+- Os números existem independentemente de quem os conta.
+- Ouvir apenas metade de uma conversa nos obriga a imaginar a outra.
+- O silêncio também tem forma.
+- Toda figura tem um fundo.
+- O espaço vazio ao redor de uma forma também é uma forma.
+- O que não é dito também comunica.
+- Figura e fundo podem trocar de lugar.
+- Às vezes o fundo é mais interessante que a figura.
+- Na música, o acompanhamento é o fundo que dá vida à melodia.
+- Conhecer algo não significa conhecer o que ele não é.
+- O que está fora de um conjunto pode ser mais difícil de descrever do que o que está dentro.
+- Nem todo fundo tem uma forma reconhecível.
+- Uma máquina perfeita, capaz de fazer tudo, destruiria a si mesma.
+- Para cada instrumento existe uma nota que ele não consegue tocar.
+- Quanto mais poderoso um sistema, mais vulnerável ele é a si mesmo.
+- Ser capaz de tudo inclui ser capaz de se destruir.
+- Toda defesa perfeita tem uma brecha que nasce dela mesma.
+- Um sistema fraco demais é seguro, mas não diz quase nada.
+- Um nome pode ser escrito em música.
+- Uma obra inacabada também é uma assinatura.
+- Mensagens podem se esconder nas primeiras letras de cada linha.
+- Ser consistente é nunca contradizer a si mesmo.
+- Ser completo é conseguir provar tudo o que é verdade.
+- Nenhum sistema rico pode ser, ao mesmo tempo, consistente e completo.
+- Questionar um pressuposto antigo pode abrir um mundo novo.
+- Séculos de tentativas falhas podem esconder uma descoberta.
+- Às vezes, quem tenta provar uma contradição acaba descobrindo outra realidade.
+- Duas verdades rivais podem ser igualmente coerentes.
+- Retas paralelas se comportam diferente em mundos diferentes.
+- Palavras ganham sentido pelo modo como se relacionam.
+- "Ponto" e "reta" podem significar coisas diferentes em geometrias diferentes.
+- Ser coerente não é o mesmo que ser verdadeiro sobre o mundo.
+- Toda história pode conter outra história dentro dela.
+- Entrar numa história é deixar outra em suspenso.
+- Toda viagem para dentro pede um caminho de volta.
+- Uma música que termina fora do tom deixa o ouvinte suspenso.
+- Esperamos sempre voltar para casa no final.
+- Uma história sem fim nos deixa pendurados no ar.
+- Recursão é algo que contém versões menores de si mesmo.
+- Toda recursão precisa de um ponto onde parar.
+- Coisas grandes podem ser definidas por versões menores delas mesmas.
+- Uma frase pode conter outra frase, sem limite fixo.
+- A linguagem é infinita porque é recursiva.
+- Um desenho pode repetir a si mesmo em escalas cada vez menores.
+- As partículas do universo podem ser feitas de interações entre partículas.
+- Um programa pode chamar a si mesmo.
+- Pensar alguns lances à frente é explorar uma árvore de possibilidades.
+- Estruturas simples, repetidas, geram uma complexidade enorme.
+- A natureza adora repetir padrões dentro de padrões.
+- Um mesmo significado pode viver em suportes diferentes.
+- A música está no disco, na partitura e na memória ao mesmo tempo.
+- O significado de uma mensagem não está só nela.
+- Toda mensagem precisa de alguém capaz de lê-la.
+- Antes de ler uma mensagem, é preciso perceber que ela é uma mensagem.
+- Uma mensagem na garrafa anuncia sua natureza pela forma.
+- O contexto revela o que o texto esconde.
+- O DNA só faz sentido dentro de uma célula.
+- Uma linguagem desconhecida ainda pode ser reconhecida como linguagem.
+- Uma única chave pode abrir uma língua inteira.
+- Algumas mensagens carregam seu sentido dentro de sua estrutura.
+- A inteligência é capaz de reconhecer padrões vindos de outra inteligência.
+- A música talvez seja uma linguagem universal.
+- Há verdades que sobrevivem à tradução de uma forma para outra.
+- A palavra "e" também obedece a regras.
+- A lógica é o estudo de como a verdade passa de uma frase para outra.
+- Imaginar uma hipótese é abrir um mundo temporário.
+- Concluir algo é voltar da imaginação trazendo um resultado.
+- Se algo é verdade e implica outra coisa, essa outra coisa também é verdade.
+- A lógica formal captura apenas parte do pensamento humano.
+- Pessoas raciocinam por saltos, intuições e analogias.
+- Algumas histórias são feitas para quebrar a lógica.
+- As palavras nunca dizem tudo.
+- Às vezes, a resposta certa é desfazer a pergunta.
+- Algumas perguntas não merecem nem sim nem não.
+- Categorias ajudam a pensar, mas também nos aprisionam.
+- Escapar de todos os sistemas é impossível.
+- Rejeitar todos os sistemas também é um sistema.
+- Algo pode ser lido de trás para frente e continuar igual.
+- O fim e o começo podem ser a mesma coisa.
+- O que vai pode voltar exatamente pelo mesmo caminho.
+- Ideias diferentes podem se entrelaçar numa única trança.
+- Toda a aritmética pode ser escrita com poucos símbolos.
+- Contar é apenas dar o próximo passo.
+- Se algo vale para o primeiro e passa para o próximo, vale para todos.
+- Provar cada caso não é o mesmo que provar a regra geral.
+- Conhecer todos os exemplos não garante conhecer o todo.
+- Matemáticos se movem livremente entre níveis de pensamento.
+- O formal e o intuitivo são dois modos de conhecer.
+- Transformar símbolos em números permite que a matemática olhe para si mesma.
+- Uma regra sobre palavras pode virar uma regra sobre números.
+- Qualquer linguagem rica pode espelhar sua própria estrutura.
+- A essência de algo talvez não caiba em palavras.
+- Uma introdução prepara o espírito para o que vem depois.
+- Algo pode ser visto como um todo ou como a soma de suas partes.
+- O todo pode ser mais do que a soma das partes.
+- Entender as partes não basta para entender o todo.
+- O todo e as partes são duas formas de olhar a mesma coisa.
+- Um mesmo sistema pode ser descrito em vários níveis.
+- Especialistas veem blocos de sentido onde iniciantes veem detalhes soltos.
+- Um iniciante vê peças isoladas; um mestre vê estruturas.
+- Agrupar informação é o que nos permite pensar em alto nível.
+- Toda linguagem complexa repousa sobre uma mais simples.
+- Traduzir de um nível para outro é a base de toda tecnologia.
+- Um erro pode surgir num nível e estar escondido em outro.
+- O comportamento do todo nem sempre aparece nas instruções das partes.
+- O clima pode ser descrito por moléculas ou por tempestades.
+- Não precisamos conhecer os átomos para entender um furacão.
+- Níveis bem separados tornam o mundo compreensível.
+- Algumas propriedades existem no todo e em nenhuma de suas partes.
+- Uma formiga sozinha é simples, mas uma colônia é inteligente.
+- O todo pode pensar o que nenhuma parte pensa.
+- Perder algumas partes pode até fortalecer o conjunto.
+- Grupos formam sinais, sinais formam símbolos, símbolos formam pensamentos.
+- Os símbolos de uma mente são padrões de atividade, não peças específicas.
+- O conhecimento pode estar guardado na forma como as partes se distribuem.
+- Ler o estado de um sistema pode ser como ler um pensamento.
+- Os níveis superiores podem influenciar os inferiores.
+- O sentido do todo não se encontra olhando uma única parte.
+- A mente é uma colônia de pequenos processos sem mente.
+- O cérebro tem bilhões de neurônios, e nenhum deles sabe que pensa.
+- Um neurônio dispara quando recebe estímulos suficientes.
+- A visão é construída em camadas cada vez mais abstratas.
+- Não existe um neurônio para cada lembrança.
+- Um conceito é um padrão espalhado por muitos neurônios.
+- Pensar é ativar símbolos em sequências significativas.
+- Um conceito geral pode gerar infinitos exemplos particulares.
+- Os conceitos se tocam, se sobrepõem e se misturam.
+- A memória não é uma gravação, é uma reconstrução.
+- Lembrar é reconstruir o passado com as peças do presente.
+- Não existe tradução perfeita entre duas línguas.
+- Traduzir poesia é reinventá-la.
+- Palavras inventadas podem ser traduzidas por outras palavras inventadas.
+- Cada língua recorta o mundo de um jeito.
+- Mentes diferentes podem ter estruturas parecidas.
+- Todas as mentes humanas compartilham um mapa semelhante de conceitos.
+- Os grandes conceitos são parecidos em todas as mentes; os pequenos caminhos variam.
+- Entender alguém é encontrar uma ponte entre duas mentes.
+- Nenhuma mente pode ser totalmente compreendida por fora.
+- Talvez nunca entendamos completamente o próprio cérebro.
+- Comunicação é o milagre de dois cérebros compartilharem uma ideia.
+- Uma pergunta simples sobre números pode desafiar a humanidade por séculos.
+- Algumas buscas terminam; outras podem continuar para sempre.
+- Nem sempre sabemos de antemão se uma busca vai acabar.
+- Às vezes, a resposta está a um passo de distância, e às vezes no infinito.
+- Os números escondem infinitas variações sobre um mesmo tema.
+- Um processo com limite sempre termina.
+- Um processo sem limite pode nunca parar.
+- Não existe um método geral para saber se um processo vai parar.
+- Toda lista de tudo o que é calculável deixa algo de fora.
+- Sempre existe algo que escapa a qualquer lista.
+- Há um limite para o que qualquer máquina pode calcular.
+- Uma frase pode falar de si mesma sem dizer "eu".
+- Citar a si mesmo é uma forma de se ver no espelho.
+- A autorreferência pode ser construída com nada além de cópia e citação.
+- Um sistema que se descreve completamente se torna incompleto.
+- Uma afirmação pode dizer de si mesma que não pode ser provada.
+- Se essa afirmação fosse provada, o sistema mentiria.
+- Se o sistema é honesto, há verdades que ele não consegue provar.
+- A incompletude não é um defeito, é uma característica da riqueza.
+- Adicionar mais regras nunca torna um sistema completo.
+- Toda solução para a incompletude cria uma nova incompletude.
+- Existem mundos matemáticos estranhos que obedecem às mesmas regras que o nosso.
+- Não existe uma teoria final dos números.
+- Responder a cada pergunta separadamente não é o mesmo que responder a todas.
+- Saltar para fora de um sistema sempre leva a outro sistema.
+- Não existe um último salto para fora de tudo.
+- Toda mente também tem limites para se conhecer.
+- Ninguém consegue ver todos os próprios pontos cegos.
+- Ver os limites dos outros é mais fácil do que ver os próprios.
+- Os limites de uma máquina não provam que mentes não são máquinas.
+- Uma câmera apontada para a própria tela cria um túnel infinito.
+- Um sistema que se observa produz espirais imprevisíveis.
+- A autorreplicação é a autorreferência transformada em vida.
+- Copiar a si mesmo exige alguém que leia as instruções.
+- Um vírus é uma mensagem que usa outros para se copiar.
+- Um programa pode imprimir seu próprio código.
+- A célula é a máquina de autocópia mais sofisticada que conhecemos.
+- O DNA é uma longa frase escrita com quatro letras.
+- A vida é uma tradução contínua entre dois alfabetos.
+- O código genético é um dicionário entre moléculas.
+- As proteínas são frases que se dobram em esculturas.
+- O DNA contém as instruções para construir quem o copia.
+- A informação flui das instruções para a ação, e a ação preserva as instruções.
+- A célula é um laço estranho de moléculas.
+- A vida e a lógica compartilham a mesma estrutura profunda.
+- A fronteira entre a mensagem e o mensageiro é difusa.
+- A beleza pode ser um guia para a verdade.
+- O que é verdadeiro muitas vezes soa belo.
+- Nenhum método mecânico separa todas as verdades das falsidades.
+- Algumas pessoas enxergam padrões que ninguém mais vê.
+- A intuição é o raciocínio que esqueceu seus próprios passos.
+- Por trás de todo prodígio há padrões, não magia.
+- Talvez tudo o que uma mente calcula possa ser calculado por uma máquina.
+- A verdade é mais ampla do que qualquer sistema de provas.
+- Um sistema não consegue definir sua própria verdade.
+- O pensamento pode ser simulado, mas em que nível?
+- Uma máquina poderia, em princípio, sentir e criar beleza.
+- Entender a linguagem exige entender o mundo.
+- Até uma conversa simples depende de um mar de conhecimento.
+- Se não conseguimos distinguir uma máquina de uma pessoa numa conversa, talvez ela pense.
+- Máquinas podem surpreender seus próprios criadores.
+- Uma máquina pode encontrar uma solução que seu criador nunca imaginou.
+- Toda vez que uma máquina faz algo, dizem que aquilo não era inteligência.
+- Inteligência artificial é tudo aquilo que ainda não foi feito.
+- Saber como fazer algo é diferente de saber que algo é verdade.
+- Compreender a linguagem humana é muito mais difícil do que parece.
+- A ambiguidade é a regra, não a exceção, na linguagem.
+- Imaginamos facilmente como as coisas poderiam ter sido diferentes.
+- Um "e se" revela o que consideramos mutável no mundo.
+- Nossas fantasias mostram como organizamos nossos conceitos.
+- Na mente, alguns fatos são rochas e outros são areia.
+- Todo pensamento acontece dentro de um contexto.
+- O conhecimento se organiza em molduras com espaços a preencher.
+- Reconhecer padrões é o coração da percepção.
+- Descobrir a regra escondida é um ato criativo.
+- Uma boa descrição torna visível o que antes era invisível.
+- Ver é sempre ver de algum nível.
+- Analogias são o coração da inteligência.
+- Os conceitos deslizam para seus vizinhos quando pressionados.
+- A criatividade nasce do deslizamento entre conceitos.
+- O acaso e a ordem convivem em toda criação.
+- A mente é flexível porque é feita de muitos níveis.
+- Uma máquina inteligente talvez seja ruim em aritmética.
+- Emoções surgem do todo, não de uma peça isolada.
+- O humor é ver algo de um ângulo inesperado.
+- Talvez máquinas pensantes sejam distraídas, confusas e criativas como nós.
+- Uma voz pode ser o inverso de outra e ainda assim combinar.
+- A negação também pode ser harmonia.
+- Uma hierarquia emaranhada surge quando os níveis se misturam.
+- Em uma hierarquia emaranhada, o mais alto toca o mais baixo.
+- A ciência que estuda a ciência cria um laço estranho.
+- Quem investiga a si mesmo nunca é totalmente imparcial.
+- A arte que questiona a arte cria um laço estranho.
+- Uma pintura pode duvidar de ser uma pintura.
+- A imagem de um objeto não é o objeto.
+- O silêncio também pode ser música.
+- Regras podem mudar outras regras.
+- Um jogo pode ter regras para modificar suas próprias regras.
+- Por baixo de todo emaranhado há um nível que não muda.
+- A mente não pode reescrever o próprio hardware.
+- Um nível firme sustenta todos os níveis emaranhados acima dele.
+- O eu é um símbolo que representa o próprio sistema.
+- A consciência surge quando um sistema modela a si mesmo.
+- Livre-arbítrio é escolher sem conhecer todas as próprias causas.
+- Uma decisão é livre quando o sistema consulta a si mesmo.
+- O eu é o laço estranho no centro da mente.
+- A mente pode pensar sobre o próprio pensamento.
+- Nenhum eu se vê por completo.
+- Quem observa o mundo também faz parte do quadro.
+- Todo retrato completo de si mesmo tem um vazio no centro.
+- A incompletude aparece também na arte.
+- Música, imagem e lógica podem tocar o mesmo tema infinito.
+- Buscar é a essência de compor.
+- Cada voz tem seu caminho, mas todas formam uma só música.
+- Mentes, máquinas e música se entrelaçam numa única trança.
+- O fim de uma história pode ser o começo de outra.
+- Toda grande obra volta, de algum modo, ao seu começo.
+- Subir sempre e voltar ao início é a forma do infinito.
+- Nenhum sistema pode ser juiz completo de si mesmo.
+- Toda certeza absoluta esconde uma suposição.
+- O que parece impossível em um nível pode ser simples em outro.
+- A ordem pode surgir sem que ninguém a comande.
+- Milhões de ações simples podem formar um único propósito.
+- Inteligência é encontrar o essencial no meio do ruído.
+- Toda percepção já é uma interpretação.
+- Não vemos o mundo; vemos nossos conceitos sobre ele.
+- Aprender é criar novos símbolos dentro de nós.
+- Uma ideia nova é uma velha ideia vista de outro ângulo.
+- O cérebro não guarda coisas, guarda padrões.
+- Cada pensamento é uma onda que percorre milhões de células.
+- O que chamamos de alma pode ser um padrão de padrões.
+- Ser alguém é ser uma história que conta a si mesma.
+- A identidade sobrevive à troca de todas as suas peças.
+- Somos mais parecidos com uma melodia do que com um instrumento.
+- Uma melodia continua a mesma em qualquer instrumento.
+- A mente é o software que o cérebro executa sem saber.
+- Entre o simples e o vivo existe apenas organização.
+- Os maiores mistérios moram nos laços que voltam para si.
+- Compreender a si mesmo é uma tarefa que nunca termina.
+- Toda mente carrega um universo inteiro em miniatura.
+- O universo, através de nós, tenta compreender a si mesmo.
+- Somos padrões que perceberam a si mesmos.
+- Um eu é uma miragem que percebe a si mesma.
+- Somos feitos de matéria que aprendeu a dizer "eu".
+- A consciência é a dança dos símbolos, não a dos átomos.
+- Sentir que existimos é o eco de um laço que nunca se fecha.
+- O significado não está nas coisas, mas nas relações entre elas.
+- O que importa não é o material, mas o padrão.
+- A mesma ideia pode viver em mentes diferentes.
+- A complexidade nasce da repetição do simples.
+- Toda resposta profunda abre uma pergunta mais profunda.
+- Compreender algo é poder reconstruí-lo por dentro.
+- Nenhuma descrição esgota a coisa descrita.
+- Um mapa nunca é o território, mas pode ser fiel a ele.
+- A verdade sempre ultrapassa nossas regras.
+- A lógica é uma ferramenta, não uma prisão.
+- O infinito se esconde em coisas simples.
+- Criar é encontrar uma liberdade dentro das regras.
+- As regras certas libertam em vez de aprisionar.
+- Toda mente é ao mesmo tempo autora e personagem de si mesma.
+- Brincar com ideias é uma forma séria de pensar.
+- O humor e a profundidade podem andar juntos.
+- Às vezes o caminho mais curto para entender algo é uma brincadeira.
+- Um paradoxo não é um erro, é uma janela.
+- Quando um sistema fala de si, algo novo acontece.
+- Mudar de nível é a forma mais poderosa de resolver um problema.
+- Toda explicação vive em algum nível de descrição.
+- Reduzir tudo às partes é perder a dança do todo.
+- Ignorar as partes é perder o chão do todo.
+- A mente humana é o mais estranho de todos os laços.
+- Olhar para dentro é ver um espelho diante de outro espelho.
+- Talvez a máquina mais complexa do universo seja aquela que pergunta o que é.
+- Nunca chegaremos ao fim do pensamento, pois o pensamento sempre se dobra sobre si.
+- Assim como a música sobe, que suba também o nosso entendimento.
