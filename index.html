@@ -3338,6 +3338,9 @@ function updatePlayer(dt, t) {
   if (on) player.bat = Math.max(0, player.bat - dt * (entities.some(e => e.lit) ? 2.6 : 1.1) * player.batK); // batK .2: a pilha da mulher do canto
   if (player.bat <= 0) player.batK = 1;
   if (player.lanterna && player.bat <= 0 && spot.intensity > 0) showMsg('a pilha acabou');
+  // sem pilha, os olhos se acostumam: os itens voltam a aparecer de leve (worldIcon), para ele não ficar perdido de vez
+  const acostuma = +PAR('lanterna', 'sem_pilha_acostuma', 3);
+  player.escuro = player.temLanterna && player.bat <= 0 ? (acostuma > 0 ? Math.min(1, (player.escuro || 0) + dt / acostuma) : 1) : 0;
   spot.intensity = on ? 30 * (player.bat < 15 ? (h3(Math.floor(t * 15), 1, 9) < .3 ? .25 : 1) : 1) : 0;
   prig.lamp.material.color.setScalar(on ? 1 : .3);
   updateShards(on, il > 0, wantRun, t);
@@ -4437,7 +4440,7 @@ function worldIcon(it, y, name, col, dt, lanterna = false) {
   let alvo = see ? 1 : 0;
   if (lanterna && see) { // lanterna = true: só aparece no cone da luz. O único item visível sem ela é a própria lanterna
     const lit = player.lanterna && player.bat > 0 && d < 11 && ((it.x - player.x) * aimX + (it.z - player.z) * aimZ) / Math.max(d, 1e-3) > Math.cos(.46);
-    alvo = lit ? 1 : 0;
+    alvo = lit ? 1 : player.temLanterna && player.bat <= 0 ? PAR('lanterna', 'sem_pilha_vis', .3) * player.escuro : 0; // sem pilha: os olhos se acostumam ao escuro
   }
   it.vis += (alvo - it.vis) * Math.min(1, dt * 6);
   if (it.vis < .02) return;
@@ -4641,14 +4644,15 @@ function navTrilha(quieto) {
 // lanterna: a trilha só existe dentro do cone da lanterna (como os cacos, updateShards), e corre a partir do personagem ao acender.
 // sempre: sempre acesa. tecla: acende na tecla (ou sozinha a cada trilha_auto s) e some em trilha_s segundos.
 function navTrilhaDesenha(dt, t) {
-  const Q = NAV.trilha_quando || 'lanterna', luzOn = player.lanterna && player.bat > 0;
+  const Q = NAV.trilha_quando || 'lanterna', luzOn = player.lanterna && player.bat > 0, semPilha = player.temLanterna && player.bat <= 0;
   let frente, some = 1;
+  if (semPilha && Q === 'tecla') { NAVT.ate = 0; return; } // a pilha acabou: o caminho não aparece (em nenhum modo)
   if (Q === 'tecla') {
     if (+NAV.trilha_auto > 0 && (NAVT.auto -= dt) <= 0) { NAVT.auto = +NAV.trilha_auto; if (NAVT.ate <= 0) navTrilha(); }
     if (NAVT.ate <= 0) return; NAVT.ate -= dt;
     frente = (NAVT.tot - NAVT.ate) * (+NAV.trilha_corre || 14); some = clamp(NAVT.ate / 1.2, 0, 1);
   } else {
-    const ativa = Q === 'sempre' || luzOn;
+    const ativa = !semPilha && (Q === 'sempre' || luzOn);
     if (!ativa) { NAVT.lig = 0; NAVT.luz = Math.max(0, NAVT.luz - dt * 4); if (NAVT.luz <= 0) return; }
     else { NAVT.lig += dt; NAVT.luz = Math.min(1, NAVT.luz + dt * 4); }
     if ((NAVT.refaz -= dt) <= 0) { NAVT.refaz = .5; if (!navTrilha(true)) NAVT.pts = []; } // o caminho acompanha o personagem
@@ -6420,7 +6424,7 @@ function cutAlvo(p) {
 }
 function cutInicia(n, previa = false) {
   const def = CUTS[n];
-  if (!def || !def.planos.length || (!previa && !def.on)) return false;
+  if (!def || !def.planos.length || !previa) return false; // no jogo só tocam as cutscenes 2D, de imagens (CI); as 3D ficam só na prévia do editor
   updateChunks(player.x, player.z);
   prig.root.position.set(player.x, 0, player.z); prig.root.rotation.y = player.face; player.anim.play('Idle_Neutral');
   Object.assign(CC, { on: true, previa, n, planos: def.planos, i: 0, t: 0, de: null, fase: 'plano', voltaT: 0, letras: 0, letraT: 0, spawn: spawnT, pausa: false, alvo: null, chegou: false, antes: previa ? [player.x, player.z, player.face] : null });
@@ -8257,7 +8261,7 @@ if (BANCADA) {
     try { parent.postMessage({ forjaPick: { ...(melhor || {}), u: (ev.clientX - r.left) / r.width, v: (ev.clientY - r.top) / r.height } }, location.origin); } catch (e) { }
   });
 }
-window.DBG = { get MUNDO_F() { return MUNDO_F; }, MALHA_CRI, buildTripod, buildFlock, partesRigidas, animarGuara, atitudesMagro, entities, addEntity, sombras, get hitStop() { return hitStop; }, vPe, T, EXIT, exitGrp, updateChunks, collide, cellNbrs, bfsPath, kindAt, roomAt, LEVELS, levelDef, get L() { return L; }, prig, isFree, segBlocked, chunks, placeCorner, tx, get cantoT() { return cantoT; }, teSalva, vesteEquipe, vesteMulher, Animator, applyPose, samplePose, typingPose, CORNER_POSE, updatePrologo, updateCorner, COLEGAS, MULHER, CUTS, CUT_MULHER, TXT, EQUIPE, PRO, teSerial, teAplica, get corner() { return corner; }, get balao() { return balao; }, get woman() { return woman; }, player, cutMulher, poeCorner, teclas: keys, startPrologo, startLevel, abreEditor, get game() { return game; }, set game(v) { game = v; }, gravaSalvo, THREE, scene, camera, renderer, CC, CUTS, cutPadrao, cutInicia, cutPula, cutToca, cutVaiNivel, cutSalva, goDeeper, cutMonta, get cutPlano() { return cutPlano; }, updateEntities, wavDe, SOM, VOZES, CAM, somCarrega, somEscolheSlot, somSalva, somEvento, musicaDoNivel, envFaixa, somFa, somClipeCanais, get somOnda() { return ondaAt; }, get entK() { return entK; }, prevToca, get cabeca() { return cabeca; }, SFX, SFX_PADRAO, AMBI, sfx, tocaPatch, fxRender, fxSalva, abreEditor, get editorSom() { return editorSom; }, get fxId() { return fxId; }, BLUR, BLUR_PADRAO, lensMat, pad, get padAtivo() { return entrada === 'controle'; }, get entrada() { return entrada; }, nav, navPara, isFree, telaMundo, get touchBox() { return touchBox; }, get game() { return game; }, get zoom() { return zoom; }, get aim() { return [aimX, aimZ]; }, renderer, ditherRT, get saidaRT() { return tempRT[tempI]; }, SNAP, camera, crtMat, tempMat, pSwatches, applyPalette, paletteFromImage, ditherMat, SALVO, EDIT, PAL, LISTA_PAL, escolhePaleta, mudou, ativaSlot, togglePainel, processaPaleta, get COR() { return COR; }, get slotAtivo() { return slotAtivo; }, salvarNivel, TIT, get lanternaItem() { return lanternaItem; }, prig, THREE, PRO, PRO_CAM, player, entities, stats, chunks, get L() { return L; }, get cat() { return cat; }, get woman() { return woman; }, get corner() { return corner; }, get curRoom() { return curRoom; }, burning, altered, pendingRoom, roomLookup, roomOnScreen, ignite, rebuildChunk, layout, startRoomFlicker, placeCorner, h3, get CUT() { return CUT; }, EXIT, startLevel, spawnEntity, lightLevel, chunkKind, layout, setGame: s => game = s, note: n => { noteOpen = n; stats.notas.add(n); game = 'note'; }, msg: showMsg,go: (x, z) => { player.x = x; player.z = z; }, updateTripod, makeNoise, breathHeard, startPhone, roomAt, cellNbrs, get phone() { return phone; }, get waves() { return waves.length; }, get thrown() { return thrown; } };
+window.DBG = { get MUNDO_F() { return MUNDO_F; }, get GP() { return GP; }, MALHA_CRI, buildTripod, buildFlock, partesRigidas, animarGuara, atitudesMagro, entities, addEntity, sombras, get hitStop() { return hitStop; }, vPe, T, EXIT, exitGrp, updateChunks, collide, cellNbrs, bfsPath, kindAt, roomAt, LEVELS, levelDef, get L() { return L; }, prig, isFree, segBlocked, chunks, placeCorner, tx, get cantoT() { return cantoT; }, teSalva, vesteEquipe, vesteMulher, Animator, applyPose, samplePose, typingPose, CORNER_POSE, updatePrologo, updateCorner, COLEGAS, MULHER, CUTS, CUT_MULHER, TXT, EQUIPE, PRO, teSerial, teAplica, get corner() { return corner; }, get balao() { return balao; }, get woman() { return woman; }, player, cutMulher, poeCorner, teclas: keys, startPrologo, startLevel, abreEditor, get game() { return game; }, set game(v) { game = v; }, gravaSalvo, THREE, scene, camera, renderer, CC, CUTS, cutPadrao, cutInicia, cutPula, cutToca, cutVaiNivel, cutSalva, goDeeper, cutMonta, get cutPlano() { return cutPlano; }, updateEntities, wavDe, SOM, VOZES, CAM, somCarrega, somEscolheSlot, somSalva, somEvento, musicaDoNivel, envFaixa, somFa, somClipeCanais, get somOnda() { return ondaAt; }, get entK() { return entK; }, prevToca, get cabeca() { return cabeca; }, SFX, SFX_PADRAO, AMBI, sfx, tocaPatch, fxRender, fxSalva, abreEditor, get editorSom() { return editorSom; }, get fxId() { return fxId; }, BLUR, BLUR_PADRAO, lensMat, pad, get padAtivo() { return entrada === 'controle'; }, get entrada() { return entrada; }, nav, navPara, isFree, telaMundo, get touchBox() { return touchBox; }, get game() { return game; }, get zoom() { return zoom; }, get aim() { return [aimX, aimZ]; }, renderer, ditherRT, get saidaRT() { return tempRT[tempI]; }, SNAP, camera, crtMat, tempMat, pSwatches, applyPalette, paletteFromImage, ditherMat, SALVO, EDIT, PAL, LISTA_PAL, escolhePaleta, mudou, ativaSlot, togglePainel, processaPaleta, get COR() { return COR; }, get slotAtivo() { return slotAtivo; }, salvarNivel, TIT, get lanternaItem() { return lanternaItem; }, prig, THREE, PRO, PRO_CAM, player, entities, stats, chunks, get L() { return L; }, get cat() { return cat; }, get woman() { return woman; }, get corner() { return corner; }, get curRoom() { return curRoom; }, burning, altered, pendingRoom, roomLookup, roomOnScreen, ignite, rebuildChunk, layout, startRoomFlicker, placeCorner, h3, get CUT() { return CUT; }, EXIT, startLevel, spawnEntity, lightLevel, chunkKind, layout, setGame: s => game = s, note: n => { noteOpen = n; stats.notas.add(n); game = 'note'; }, msg: showMsg,go: (x, z) => { player.x = x; player.z = z; }, updateTripod, makeNoise, breathHeard, startPhone, roomAt, cellNbrs, get phone() { return phone; }, get waves() { return waves.length; }, get thrown() { return thrown; } };
 iniciaPainel();
 startLevel(-1); banner = null; game = 'title'; // ao fundo do título, o escritório do último dia
 // Campanha → ▶ Jogar este nível (?nivel=N) e ▶ Testar o prólogo (?prologo): depois do título montado, senão ele cobria o nível
