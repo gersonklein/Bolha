@@ -5194,7 +5194,19 @@ function montarElenco() { // ele senta de frente para o terminal; a câmera fica
   player.seat = meu; meu.taken = player; player.x = meu.x; player.z = meu.z; player.face = meu.yaw ?? Math.atan2(0, -meu.face);
   montarMesa(); camTarget.set(player.x, 1, player.z);
 }
+// o prólogo agora é a cutscene 2D (imagens) ligada ao começo do jogo (gatilho inicio_jogo); no fim dela, o primeiro nível.
+// Sem cutscene (ou se ela não carregar), começa direto. O prólogo 3D antigo fica em startPrologo3D, fora do jogo.
+let introT = false;
 function startPrologo() {
+  if (introT) return;
+  const ids = (CI.indice || []).filter(c => (c.gatilhos || []).some(g => (g.onde || 'jogo') === 'jogo' && g.evento === 'inicio_jogo')).map(c => c.id);
+  const comeca = () => { introT = false; CI.depois = null; if (game === 'title') newRun(); };
+  if (!ids.length) return comeca();
+  introT = true; CI.depois = comeca;
+  for (const id of ids) CI.vistas.add(`${id}|inicio_jogo|`);
+  (async () => { let ok = false; for (const id of ids) ok = (await CI.tocar(id)) || ok; if (!ok) comeca(); })();
+}
+function startPrologo3D() {
   CI.evento('inicio_jogo'); // as cutscenes de imagens ligadas ao começo do jogo
   resetRun();
   Object.assign(PRO, { etapa: 'sentado', trava: false, fechado: false, closeK: 1, t: 0, t0: 0, pularT: 0, pag: 0, fala: null, falaN: 0 });
@@ -7860,6 +7872,7 @@ CI.acabar = function () { if (CI.saindo > 0) return; CI.saindo = CI_FADE; };
 CI.fechar = function () {
   CI.on = false; CI.d = null; if (CI.musica) { CI.musica.pause(); CI.musica = null; }
   if (CI.fila.length) CI.tocar(CI.fila.shift());
+  else if (CI.depois) CI.depois(); // a intro 2D acabou: começa o primeiro nível
 };
 CI.tecla = function (e) {
   if (e.repeat || CI.saindo > 0) return;
