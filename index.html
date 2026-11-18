@@ -419,7 +419,7 @@ const postF = new THREE.Scene(); postF.add(new THREE.Mesh(new THREE.PlaneGeometr
 const BOLHAS = { lista: null, pedido: false, t: 0 }, BOLHAS_MAX = 24;
 function carregaBolhas() {
   if (BOLHAS.pedido) return; BOLHAS.pedido = true;
-  fetch('UI/bolhas/bolhas.json').then(r => r.json()).then(d => { BOLHAS.lista = (d.bolhas || []).slice(0, BOLHAS_MAX); }).catch(() => console.warn('abertura 2: falta UI/bolhas/bolhas.json (salve a abertura na Forja)'));
+  fetch('UI/bolhas/bolhas.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { BOLHAS.lista = (d.bolhas || []).slice(0, BOLHAS_MAX); }).catch(() => console.warn('abertura 2: falta UI/bolhas/bolhas.json (salve a abertura na Forja)'));
 }
 const bolhasRT = new THREE.WebGLRenderTarget(1024, 1024, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
 const cor3 = (h) => new THREE.Color(h || '#000000'); // ColorManagement desligado: o hex cru, como o source_color de canvas da Godot
@@ -5194,22 +5194,10 @@ function montarElenco() { // ele senta de frente para o terminal; a câmera fica
   player.seat = meu; meu.taken = player; player.x = meu.x; player.z = meu.z; player.face = meu.yaw ?? Math.atan2(0, -meu.face);
   montarMesa(); camTarget.set(player.x, 1, player.z);
 }
-// o prólogo agora é a cutscene 2D (imagens) ligada ao começo do jogo (gatilho inicio_jogo); no fim dela, o primeiro nível.
-// Sem cutscene (ou se ela não carregar), começa direto. O prólogo 3D antigo fica em startPrologo3D, fora do jogo.
-let introT = false;
 function startPrologo() {
-  if (introT) return;
-  const ids = (CI.indice || []).filter(c => (c.gatilhos || []).some(g => (g.onde || 'jogo') === 'jogo' && g.evento === 'inicio_jogo')).map(c => c.id);
-  const comeca = () => { introT = false; CI.depois = null; if (game === 'title') newRun(); };
-  if (!ids.length) return comeca();
-  introT = true; CI.depois = comeca;
-  for (const id of ids) CI.vistas.add(`${id}|inicio_jogo|`);
-  (async () => { let ok = false; for (const id of ids) ok = (await CI.tocar(id)) || ok; if (!ok) comeca(); })();
-}
-function startPrologo3D() {
   CI.evento('inicio_jogo'); // as cutscenes de imagens ligadas ao começo do jogo
   resetRun();
-  Object.assign(PRO, { etapa: 'sentado', trava: false, fechado: false, closeK: 1, t: 0, t0: 0, pularT: 0, pag: 0, fala: null, falaN: 0 });
+  Object.assign(PRO, { etapa: 'sentado', trava: false, fechado: false, closeK: 0, t: 0, t0: 0, pularT: 0, pag: 0, fala: null, falaN: 0 });
   CUT.uDimK.value = 0; startLevel(-1); montarElenco(); montarRota(); montarAndantes(); narraPagina(); PRO.espera = 2.2; game = 'play'; // um instante só com a imagem, antes da primeira letra
 }
 const pertoDaMesa = () => !!PRO.mesa && Math.hypot(PRO.mesa.x - player.x, PRO.mesa.z - player.z) < 2;
@@ -5243,7 +5231,7 @@ function updatePrologo(dt, t) {
     e.falaT -= dt; olhar(e, balao && balao.e === e, dt);
   }
   PRO.t0 += dt;
-  PRO.closeK += ((PRO.etapa === 'sentado' ? 1 : 0) - PRO.closeK) * Math.min(1, dt * 1.4);
+  PRO.closeK = 0; // sem a câmera de cinema: o prólogo começa (sentado) já na câmera do jogo
   if (game !== 'play') return;
   PRO.pularT = Math.max(0, PRO.pularT - dt);
   if (PRO.fala && (PRO.fala.t -= dt) <= 0) PRO.fala = null;
@@ -7872,7 +7860,6 @@ CI.acabar = function () { if (CI.saindo > 0) return; CI.saindo = CI_FADE; };
 CI.fechar = function () {
   CI.on = false; CI.d = null; if (CI.musica) { CI.musica.pause(); CI.musica = null; }
   if (CI.fila.length) CI.tocar(CI.fila.shift());
-  else if (CI.depois) CI.depois(); // a intro 2D acabou: começa o primeiro nível
 };
 CI.tecla = function (e) {
   if (e.repeat || CI.saindo > 0) return;
@@ -8094,11 +8081,13 @@ function cameraAndRender(dt, t) {
   crtMat.uniforms.uGlitch.value = Math.min(1.5, glitch);
   crtMat.uniforms.uFade.value = game === 'trans' ? 1 - Math.abs(fadeT - 1) : game === 'end' ? clamp((endT - .5) * .5, 0, .55) : cc && game === 'cut' ? cc.fade : L.prologo && !title ? clamp(1 - PRO.t0 / 1.4, 0, 1) : 0; // a primeira cena abre do preto
   if (GP.dim) crtMat.uniforms.uFade.value = Math.max(crtMat.uniforms.uFade.value, GP.dim);
-  if (CARREGANDO) crtMat.uniforms.uFade.value = 1; // a prévia da Forja abrindo direto num nível: escuro até ele estar pronto // regra luzes_apagar / luzes_piscar do gameplay
+  // a abertura só aparece pronta: sem as bolhas (ou a imagem de fundo) ainda, a cena 3D do título aparecia antes da capa certa
+  const abEspera = title && performance.now() < 6000 && ((AB.estilo === 'bolhas' && !BOLHAS.lista) || (AB.fundo_tipo === 'imagem' && AB.fundo_imagem && !FUNDO.tex));
+  if (CARREGANDO || abEspera) crtMat.uniforms.uFade.value = 1; // a prévia da Forja abrindo direto num nível: escuro até ele estar pronto // regra luzes_apagar / luzes_piscar do gameplay
 
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, UI.width, UI.height); g.setTransform(UIS, 0, 0, UIS, 0, 0);
   temaCena();
-  if (title && !CARREGANDO) drawTitle(t);
+  if (title && !CARREGANDO && !abEspera) drawTitle(t);
   else if (title) { /* carregando o nível pedido: nada por cima */ }
   else if (game === 'map') drawMap();
   else if (game === 'help') drawHelp();
