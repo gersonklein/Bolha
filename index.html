@@ -745,7 +745,7 @@ function roomAt(i, j) { if (MUNDO_F) return MUNDO_F.comodoEm((i + .5) * L.C, (j 
    Medir: BOLHA.bolhaMedir() (console ou Forja → Jogo → Bolha → Medir): ms das passadas sem e com culling/LOD.
    Testar: ?bolha=1 liga, ?bolha_ini=0 começa já; BOLHA.bolhaTeste() espalha a bolha em volta agora. */
 const BV_PADRAO = { ligado: false, inicio: 150, ninhos: 3, ninho_min: 14, ninho_max: 45, ritmo: 6, acelera: 2, caca: .5, alcance: 70,
-  esporo_s: 5, mole_s: 8, garantir_rota: true, folga: 1.6, lento: .5, sanidade: 1.2, luz_recua: 0,
+  esporo_s: 5, mole_s: 8, garantir_rota: true, folga: 1.6, lento: .5, sanidade: 1.2, luz_recua: 0, luz_retrai: .8, luz_volta: 1.5,
   cor: '#c07078', borda: '#ffc0b0', refracao: 3, brilho: .45, veias: .5, respira: .05, densidade: 1, tamanho: 1, membrana: .6, sombra: .55, limiar: .35,
   max_bolhas: 2000, alvo_ms: 1.5, lod_px: .7, lod_auto: true };
 let BV = { ...BV_PADRAO, ...(JOGO?.invasao || {}) };
@@ -805,9 +805,27 @@ function bvComeca() { // os ninhos: células andáveis entre ninho_min e ninho_m
   }
   BVS.ninhos = escolhidos;
 }
+// a lanterna retrai as bolhas: cada célula tem `luz` (0–1) que sobe rápido sob o cone (sem parede no meio) e desce devagar
+// (luz_volta /s); o shader encolhe e empurra para longe da luz as bolhas da célula (iA.y). Só visual: recuar de verdade é luz_recua
+const BVL = new Set(); // as células com luz > 0
+function bvLuz(dt) {
+  const K = BV.luz_retrai > 0 && player.lanterna && player.bat > 0 && spot.intensity > 1, C = L.C, R = 9, cA = Math.cos(.5);
+  if (K) { const i0 = Math.floor((player.x - R) / C), i1 = Math.floor((player.x + R) / C), j0 = Math.floor((player.z - R) / C), j1 = Math.floor((player.z + R) / C);
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const c = BVS.cel.get(bvK(i, j)); if (!c) continue;
+      const cx = (i + .5) * C, cz = (j + .5) * C, dx = cx - player.x, dz = cz - player.z, d = Math.hypot(dx, dz);
+      if (d > R || (d > C && (dx * aimX + dz * aimZ) / d < cA)) continue;
+      if ((c.luzV = (c.luzV || 0) - dt) <= 0) { c.luzV = .15; c.luzOk = !segBlocked(player.x, player.z, cx, cz); } // a parede tapa (conferido 7×/s)
+      if (c.luzOk) { c.luzA = 1; BVL.add(c); } } }
+  for (const c of BVL) {
+    const alvo = c.luzA ? 1 : 0, ant = c.luz || 0; c.luzA = 0;
+    c.luz = alvo > ant ? Math.min(1, ant + dt * 6) : Math.max(0, ant - dt * Math.max(.05, BV.luz_volta));
+    if (Math.abs(c.luz - ant) > 1e-4) BVS.sujo = true;
+    if (c.luz <= 0 && !alvo) BVL.delete(c);
+  }
+}
 function bvQuadro(dt) {
   if (!BVS.on || dt <= 0) return;
-  BVS.t += dt;
+  BVS.t += dt; if (BVS.ativo) bvLuz(dt);
   if (!BVS.ativo) { if (BVS.t >= BV.inicio) bvComeca(); return; }
   const C = L.C, pc = bvCelDe(player.x, player.z);
   if (pc && pc.est >= 1) player.san = Math.max(0, player.san - BV.sanidade * dt); // dentro da bolha mole a cabeça pesa
@@ -888,14 +906,18 @@ const bvA = new THREE.InstancedBufferAttribute(new Float32Array(BV_MAX * 4), 4),
 bvA.setUsage(THREE.DynamicDrawUsage); bvB.setUsage(THREE.DynamicDrawUsage); bvGeo.setAttribute('iA', bvA); bvGeo.setAttribute('iB', bvB); bvGeo.instanceCount = 0;
 bvGeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e9); // o culling é nosso (por célula), não o do three
 const bvSplatMat = new THREE.ShaderMaterial({
-  uniforms: { uT: { value: 0 }, uResp: { value: .05 }, uRes: { value: LOWRES }, uLodPx: { value: .7 }, tDepth: { value: sceneRT.depthTexture }, uPI: { value: new THREE.Matrix4() }, uCW: { value: new THREE.Matrix4() } },
+  uniforms: { uT: { value: 0 }, uResp: { value: .05 }, uRes: { value: LOWRES }, uLodPx: { value: .7 }, uRetrai: { value: .8 }, uLuzP: { value: new THREE.Vector2() }, tDepth: { value: sceneRT.depthTexture }, uPI: { value: new THREE.Matrix4() }, uCW: { value: new THREE.Matrix4() } },
   vertexShader: `
-    attribute vec4 iA, iB; uniform float uT, uResp, uRes, uLodPx;
+    attribute vec4 iA, iB; uniform float uT, uResp, uRes, uLodPx, uRetrai; uniform vec2 uLuzP;
     varying vec2 vQ; varying float vZ, vR, vS;
     void main(){
       float g = smoothstep(0., 1., clamp((uT - iB.x) / max(iB.y, .1), 0., 1.));
       float r = iA.w * g * (1. + uResp * sin(uT * (.7 + .6 * fract(iB.w * 7.)) + iB.z));
-      vec4 cv = modelViewMatrix * vec4(iA.x, r * .5, iA.z, 1.);         // meio afundada no chão
+      float lz = iA.y * uRetrai * (.85 + .3 * fract(iB.w * 13.));           // a lanterna: encolhe (as pequenas somem antes)…
+      vec2 fx = iA.xz - uLuzP; float fl = length(fx);
+      vec2 pc = iA.xz + (fl > .01 ? fx / fl : vec2(0.)) * lz * iA.w * .7;     // …e recua, para longe da luz
+      r *= 1. - clamp(lz * (iB.w < .5 ? 1.15 : .9), 0., 1.);
+      vec4 cv = modelViewMatrix * vec4(pc.x, r * .5, pc.y, 1.);         // meio afundada no chão
       float px = r / max(-cv.z, .01) * projectionMatrix[1][1] * .5 * uRes; // o raio em pixels da imagem baixa
       if (px < uLodPx) { gl_Position = vec4(2., 2., 2., 1.); return; }     // LOD: pequena demais para aparecer
       vQ = position.xy; vZ = -cv.z; vR = r; vS = iB.w;
@@ -997,7 +1019,7 @@ function bvMonta(modo) {
       const cl = q[7], s = q[6];
       if (cl === 2 && (dentro || s > det * (longe ? .45 : 1))) continue;
       if (cl === 1 && dentro && s > .35 * det + .1) continue;
-      A[n * 4] = q[0]; A[n * 4 + 1] = 0; A[n * 4 + 2] = q[1]; A[n * 4 + 3] = q[2];
+      A[n * 4] = q[0]; A[n * 4 + 1] = c.luz || 0; A[n * 4 + 2] = q[1]; A[n * 4 + 3] = q[2]; // y: a luz da lanterna na célula (retrai)
       B[n * 4] = c.t0 + q[3]; B[n * 4 + 1] = q[4]; B[n * 4 + 2] = q[5]; B[n * 4 + 3] = s; n++;
     }
   }
@@ -1031,7 +1053,7 @@ function bvDesenha(dt, modo = BVS.modo, medir = false) {
   if (!BVS.n) return null;
   if (bvRT.width !== RES) { bvRT.setSize(RES, RES); bvOutRT.setSize(RES, RES); }
   const su = bvSplatMat.uniforms, cu = bvCompMat.uniforms;
-  su.uT.value = BVS.t; su.uResp.value = BV.respira; su.uRes.value = RES; su.uLodPx.value = modo === 'bruto' ? 0 : BV.lod_px; cu.uNear.value = camera.near; cu.uFar.value = camera.far;
+  su.uT.value = BVS.t; su.uResp.value = BV.respira; su.uRetrai.value = BV.luz_retrai; su.uLuzP.value.set(player.x, player.z); su.uRes.value = RES; su.uLodPx.value = modo === 'bruto' ? 0 : BV.lod_px; cu.uNear.value = camera.near; cu.uFar.value = camera.far;
   su.uPI.value.copy(camera.projectionMatrixInverse); su.uCW.value.copy(camera.matrixWorld); cu.uOff.value.copy(ditherMat.uniforms.uOff.value);
   _bvV.set(player.x, .9, player.z).project(camera); cu.uPl.value.set(_bvV.x * .5 + .5, _bvV.y * .5 + .5);
   cu.uPlR.value = 1.15 / Math.max(1, camera.position.distanceTo(_bvN3.set(player.x, .9, player.z))) * camera.projectionMatrix.elements[5] * .5;
@@ -1157,7 +1179,7 @@ function bakeAt(x, y, z, nx, ny, nz, sx = x + nx * .13, sz = z + nz * .13, fast 
 
 // materiais: Lambert + luz assada somada (atributo "bake") + corte pontilhado do que fica na frente do andarilho
 // uDim/uDimK: retângulo (x0, z0, x1, z1) de uma sala cujas luminárias estão piscando — a luz assada lá dentro apaga junto
-const CUT = { uNevoaFraca: NEVOA_FRACA, uPlayer: { value: new THREE.Vector3(0, 0, -999) }, uCutOff: { value: ditherMat.uniforms.uOff.value }, uListra: { value: .07 }, uDim: { value: new THREE.Vector4(0, 0, 0, 0) }, uDimK: { value: 0 }, uCutK: { value: 1.6 }, uCutW: { value: 1 } };
+const CUT = { uNevoaFraca: NEVOA_FRACA, uPlayer: { value: new THREE.Vector3(0, 0, -999) }, uCutOff: { value: ditherMat.uniforms.uOff.value }, uListra: { value: .07 }, uDim: { value: new THREE.Vector4(0, 0, 0, 0) }, uDimK: { value: 0 }, uCutK: { value: 1.6 }, uCutW: { value: 1 }, uChaoSemElenco: { value: 0 } };
 const DIM_GLSL = 'uniform vec4 uDim; uniform float uDimK;\nfloat dimIn(vec3 p) { return step(uDim.x, p.x) * step(p.x, uDim.z) * step(uDim.y, p.z) * step(p.z, uDim.w); }';
 // o mesmo apagão nas luminárias e no halo (materiais sem luz assada)
 function dimPatch(m) {
@@ -1178,11 +1200,15 @@ function dimPatch(m) {
 }
 // as lâmpadas sobre a cabeça (o andarilho e cada pessoa do elenco) iluminam o chão e as pessoas, não as paredes: são marcadas
 // pela queda (decay) HEAD_DECAY, e o shader das paredes zera a luz pontual com essa queda
-const HEAD_DECAY = 2.0137;
-const LUZ_SEM_CABECA = (() => { const a = 'getPointLightInfo( pointLight, geometryPosition, directLight );', c = THREE.ShaderChunk.lights_fragment_begin;
-  if (!c.includes(a)) { console.warn('lâmpada de cabeça: o three mudou o lights_fragment_begin; as paredes voltam a receber a luz dela'); return '#include <lights_fragment_begin>'; }
-  return c.replace(a, `${a}\n\t\tdirectLight.color *= step( .0005, abs( pointLight.decay - ${HEAD_DECAY.toFixed(4)} ) );`); })();
-function bakedMat({ map = null, listra = false, cut = true } = {}) {
+// As do elenco têm a sua marca (ELENCO_DECAY): no prólogo elas não acendem o chão (CUT.uChaoSemElenco = 1), só a do andarilho
+const HEAD_DECAY = 2.0137, ELENCO_DECAY = 2.0173;
+const luzPatch = (linha) => { const a = 'getPointLightInfo( pointLight, geometryPosition, directLight );', c = THREE.ShaderChunk.lights_fragment_begin;
+  if (!c.includes(a)) { console.warn('lâmpada de cabeça: o three mudou o lights_fragment_begin; paredes e chão voltam a receber a luz dela'); return '#include <lights_fragment_begin>'; }
+  return c.replace(a, `${a}\n\t\t${linha}`); };
+const ehLuz = (d) => `(1. - step( .0005, abs( pointLight.decay - ${d.toFixed(4)} ) ))`;
+const LUZ_SEM_CABECA = luzPatch(`directLight.color *= (1. - ${ehLuz(HEAD_DECAY)}) * (1. - ${ehLuz(ELENCO_DECAY)});`); // parede: nenhuma lâmpada de cabeça
+const LUZ_CHAO = luzPatch(`directLight.color *= 1. - uChaoSemElenco * ${ehLuz(ELENCO_DECAY)};`); // chão: a do elenco só fora do prólogo
+function bakedMat({ map = null, listra = false, cut = true, chao = false } = {}) {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, map });
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, CUT);
@@ -1190,7 +1216,7 @@ function bakedMat({ map = null, listra = false, cut = true } = {}) {
       .replace('#include <common>', '#include <common>\nattribute float bake; varying float vBake; varying vec3 vWP;')
       .replace('#include <project_vertex>', '#include <project_vertex>\nvBake = bake; vWP = (modelMatrix * vec4(transformed, 1.)).xyz;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform vec3 uPlayer; uniform vec2 uCutOff; uniform float uListra, uCutK, uCutW; varying float vBake; varying vec3 vWP;\n${DIM_GLSL}\nconst float BY[16] = float[16](${BAYER.map(v => v.toFixed(1)).join(',')});`)
+      .replace('#include <common>', `#include <common>\nuniform vec3 uPlayer; uniform vec2 uCutOff; uniform float uListra, uCutK, uCutW, uChaoSemElenco; varying float vBake; varying vec3 vWP;\n${DIM_GLSL}\nconst float BY[16] = float[16](${BAYER.map(v => v.toFixed(1)).join(',')});`)
       .replace('void main() {', `void main() {\n${cut ? `
         float cdz = vWP.z - uPlayer.z, cdx = abs(vWP.x - uPlayer.x);
         if (cdz > .12 && cdz < 2.8 * uCutW && vWP.y > cdz * uCutK - .35 && vWP.y < cdz * uCutK + 2.3) {
@@ -1203,10 +1229,10 @@ function bakedMat({ map = null, listra = false, cut = true } = {}) {
           diffuseColor.rgb *= 1. - uListra * step(.5, fract((vWP.x + vWP.z) * 2.5));
           diffuseColor.rgb *= vWP.y < .14 ? .55 : 1.;
         }` : ''}`)
-      .replace('#include <lights_fragment_begin>', listra ? LUZ_SEM_CABECA : '#include <lights_fragment_begin>') // listra = parede
+      .replace('#include <lights_fragment_begin>', listra ? LUZ_SEM_CABECA : chao ? LUZ_CHAO : '#include <lights_fragment_begin>') // listra = parede
       .replace('#include <opaque_fragment>', 'outgoingLight += diffuseColor.rgb * vBake * (1. - uDimK * dimIn(vWP));\n#include <opaque_fragment>');
   };
-  m.customProgramCacheKey = () => 'bk' + (+listra) + (+cut) + (+!!map);
+  m.customProgramCacheKey = () => 'bk' + (+listra) + (+cut) + (+!!map) + (+chao);
   return m;
 }
 function floorTexture(kind) {
@@ -1225,7 +1251,7 @@ function floorTexture(kind) {
   const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
-const FLOOR_MATS = Object.fromEntries(['carpete', 'ladrilho', 'concreto', 'cascalho', 'relva', 'asfalto'].map(k => [k, bakedMat({ map: floorTexture(k), cut: false })]));
+const FLOOR_MATS = Object.fromEntries(['carpete', 'ladrilho', 'concreto', 'cascalho', 'relva', 'asfalto'].map(k => [k, bakedMat({ map: floorTexture(k), cut: false, chao: true })]));
 const wallMat = bakedMat({ listra: true });
 const hedgeMat = bakedMat();
 const propMat = bakedMat();
@@ -2077,7 +2103,7 @@ function buildChunk(ci, cj) {
 const forjaMats = { chao: null, parede: null, obj: null };
 function matsForja() {
   if (forjaMats.chao) return forjaMats;
-  forjaMats.chao = bakedMat({ cut: false }); forjaMats.parede = bakedMat({ listra: true }); forjaMats.obj = bakedMat();
+  forjaMats.chao = bakedMat({ cut: false, chao: true }); forjaMats.parede = bakedMat({ listra: true }); forjaMats.obj = bakedMat();
   for (const m of Object.values(forjaMats)) m.side = THREE.DoubleSide;
   return forjaMats;
 }
@@ -3116,7 +3142,7 @@ player.anim.onEvent = name => { if (name.startsWith('Step')) step(player.anim.cu
 const selfLight = new THREE.PointLight(0xffffff, 7.5, 4.2, HEAD_DECAY); scene.add(selfLight); // a lâmpada sobre a cabeça: não pega nas paredes
 // a mesma lâmpada sobre a cabeça das pessoas do elenco (equipe, a mulher, a do canto, os personagens do gameplay): um conjunto
 // fixo de luzes (o número de luzes não muda, nada recompila) que vai para as mais perto do andarilho a cada quadro
-const CABECA_N = 4, cabecaPool = []; for (let k = 0; k < CABECA_N; k++) { const p = new THREE.PointLight(0xffffff, 0, 4.2, HEAD_DECAY); scene.add(p); cabecaPool.push(p); }
+const CABECA_N = 4, cabecaPool = []; for (let k = 0; k < CABECA_N; k++) { const p = new THREE.PointLight(0xffffff, 0, 4.2, ELENCO_DECAY); scene.add(p); cabecaPool.push(p); }
 const spot = new THREE.SpotLight(0xffffff, 30, 15, .46, .5, 1.4);
 spot.castShadow = true; spot.shadow.mapSize.set(512, 512); spot.shadow.camera.near = .3; spot.shadow.camera.far = 16; spot.shadow.bias = -.002;
 scene.add(spot, spot.target);
@@ -8297,7 +8323,7 @@ function cameraAndRender(dt, t) {
 
   CUT.uCutK.value = Math.tan(pitch); CUT.uCutW.value = cc ? 1.5 : 1; CUT.uPlayer.value.set(cc ? focoX : title || closeK > .25 ? -9999 : player.x, 0, cc ? focoZ : player.z); // na primeira cena, nada é recortado: o encosto da cadeira faz parte da imagem
   selfLight.position.set(focoX + camC.lx * closeK, 2.1 + (camC.ly - 2.1) * closeK, focoZ + camC.lz * closeK); // na primeira cena, a luz vem do lado do terminal e acha o rosto selfLight.intensity = title ? 0 : 7.5 + (PRO_CAM.luz - 7.5) * closeK;
-  luzesCabeca(title);
+  luzesCabeca(title); CUT.uChaoSemElenco.value = L.prologo ? 1 : 0; // no prólogo as lâmpadas do elenco não acendem o chão
   spot.position.set(player.x + aimX * .3, 1.25, player.z + aimZ * .3); spot.target.position.set(player.x + aimX * 6, .2, player.z + aimZ * 6);
   if (title || player.dead) spot.intensity = 0;
   luzTitulo(title && TIT.on);
