@@ -24,7 +24,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { criarMundo, serializar, desserializar, corDominante, recolorir } from './forja/mundo.js';
+import { criarMundo, serializar, desserializar, corDominante, recolorir, malhaDaReceita } from './forja/mundo.js';
+import { cfgMemorias, planoMemorias, frasesMemorias } from './forja/memorias.js'; // as memórias do nível: a mesma conta da Forja
 THREE.ColorManagement.enabled = false; // cores "cruas": a luminância vai direto para o pontilhado
 // a intensidade da névoa (Forja → Abertura → Cena 3D → Névoa): uNevoaFraca = 1 − intensidade, um uniforme só para todos os
 // materiais. Sem ele (0) a névoa é a de sempre, então material nenhum perde a névoa se o uniforme não chegar
@@ -76,15 +77,19 @@ async function carregarForja(arq) {
   const N = await (await fetch(arq, { cache: 'no-store' })).json(); N.modelos = {};
   const gl = new GLTFLoader(), dir = '';
   await Promise.all(Object.entries(N.elementos || {}).filter(([, e]) => e.glb).map(([id, e]) => new Promise(ok => gl.load(dir + e.glb, g => {
-    const geos = []; g.scene.updateMatrixWorld(true);
-    g.scene.traverse(o => { if (!o.isMesh) return; let q = o.geometry.clone().applyMatrix4(o.matrixWorld); if (q.index) q = q.toNonIndexed();
+    const j = geoDoGltf(g.scene); if (j) N.modelos[id] = j; ok();
+  }, undefined, () => ok()))));
+  NIVEIS_FORJA.set(arq, N); return N;
+}
+// as malhas de um .glb da Forja numa geometria só (position, normal, color)
+function geoDoGltf(cena) {
+    const geos = []; cena.updateMatrixWorld(true);
+    cena.traverse(o => { if (!o.isMesh) return; let q = o.geometry.clone().applyMatrix4(o.matrixWorld); if (q.index) q = q.toNonIndexed();
       const n = q.attributes.position.count; if (!q.attributes.color) { const c = new Float32Array(n * 3), m = o.material?.color || new THREE.Color(.7, .7, .7); for (let k = 0; k < n; k++) c.set([m.r, m.g, m.b], k * 3); q.setAttribute('color', new THREE.BufferAttribute(c, 3)); }
       else if (q.attributes.color.itemSize === 4) { const a = q.attributes.color, c = new Float32Array(n * 3); for (let k = 0; k < n; k++) c.set([a.getX(k), a.getY(k), a.getZ(k)], k * 3); q.setAttribute('color', new THREE.BufferAttribute(c, 3)); }
       for (const k of Object.keys(q.attributes)) if (!['position', 'normal', 'color'].includes(k)) q.deleteAttribute(k);
       if (!q.attributes.normal) q.computeVertexNormals(); geos.push(q); });
-    if (geos.length) N.modelos[id] = mergeGeometries(geos); ok();
-  }, undefined, () => ok()))));
-  NIVEIS_FORJA.set(arq, N); return N;
+    return geos.length ? mergeGeometries(geos) : null;
 }
 const T = { ...JOGO.tema, seed: +qs.get('seed') || JOGO.tema.seed }; // o tema do jogo: da Forja
 const LOWRES = +qs.get('res') || 256;
@@ -94,7 +99,7 @@ const NIVEL_URL = (qs.get('nivel') ?? '') !== '' || qs.has('bancada'); // &nivel
 let CARREGANDO = NIVEL_URL || qs.has('prologo');
 // A abertura (tela de título): capa, bolhas, cena, fundo e vinheta vêm da Forja (Jogo → Abertura → bolha/jogo.json
 // "abertura", forja/abertura_bolha.py, que manda TODOS os valores, com o padrão de lá). Nada fixo aqui.
-const AB = { titulo: T.titulo, objetos: [], ...(JOGO.abertura || {}) };
+const AB = { titulo: T.titulo, objetos: [], pedestres: false, pedestres_quem: [], pedestres_n: 3, pedestres_intervalo: 6, pedestres_vel: 1, ...(JOGO.abertura || {}) }; // pedestres: jogo.json de antes deles
 if (!('cam_fov' in AB)) console.warn('bolha/jogo.json sem a abertura nova: salve a aba Jogo → Abertura da Forja (ou exporte de novo)');
 // cores do pontilhado da cena: array fixo de MAXPAL no shader, só as uN primeiras valem (a paleta pode ser trocada em jogo, tecla C)
 const MAXPAL = 32, PAL = Array.from({ length: MAXPAL }, (_, i) => new THREE.Color(T.paleta[Math.min(i, T.paleta.length - 1)]));
@@ -1171,6 +1176,12 @@ function dimPatch(m) {
   };
   m.customProgramCacheKey = () => 'dim'; return m;
 }
+// as lâmpadas sobre a cabeça (o andarilho e cada pessoa do elenco) iluminam o chão e as pessoas, não as paredes: são marcadas
+// pela queda (decay) HEAD_DECAY, e o shader das paredes zera a luz pontual com essa queda
+const HEAD_DECAY = 2.0137;
+const LUZ_SEM_CABECA = (() => { const a = 'getPointLightInfo( pointLight, geometryPosition, directLight );', c = THREE.ShaderChunk.lights_fragment_begin;
+  if (!c.includes(a)) { console.warn('lâmpada de cabeça: o three mudou o lights_fragment_begin; as paredes voltam a receber a luz dela'); return '#include <lights_fragment_begin>'; }
+  return c.replace(a, `${a}\n\t\tdirectLight.color *= step( .0005, abs( pointLight.decay - ${HEAD_DECAY.toFixed(4)} ) );`); })();
 function bakedMat({ map = null, listra = false, cut = true } = {}) {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, map });
   m.onBeforeCompile = sh => {
@@ -1192,6 +1203,7 @@ function bakedMat({ map = null, listra = false, cut = true } = {}) {
           diffuseColor.rgb *= 1. - uListra * step(.5, fract((vWP.x + vWP.z) * 2.5));
           diffuseColor.rgb *= vWP.y < .14 ? .55 : 1.;
         }` : ''}`)
+      .replace('#include <lights_fragment_begin>', listra ? LUZ_SEM_CABECA : '#include <lights_fragment_begin>') // listra = parede
       .replace('#include <opaque_fragment>', 'outgoingLight += diffuseColor.rgb * vBake * (1. - uDimK * dimIn(vWP));\n#include <opaque_fragment>');
   };
   m.customProgramCacheKey = () => 'bk' + (+listra) + (+cut) + (+!!map);
@@ -2020,13 +2032,14 @@ function buildChunk(ci, cj) {
   // itens: no centro das células, fora da mobília
   for (let a = 0; a < CH; a++) for (let b = 0; b < CH; b++) {
     const i = ci * CH + a, j = cj * CH + b; if (L.prologo || (i === 0 && j === 0)) continue;
-    const hi = h3(i, j, 15), key = `${levelN}:${i}:${j}`, type = hi < .022 ? 'agua' : hi < .036 ? 'pilha' : hi < .043 ? 'nota' : null;
+    const hi = h3(i, j, 15), key = `${levelN}:${i}:${j}`, type = hi < .022 ? 'agua' : hi < .036 ? 'pilha' : hi < .036 + PAR('itens', 'nota', 0) ? 'nota' : null; // bilhete avulso: as memórias vêm de memoriasDoBloco
     if (!type || collected.has(key)) continue;
     const ix = (i + .5) * C + (h3(i, j, 16) - .5) * C * .35, iz = (j + .5) * C + (h3(i, j, 17) - .5) * C * .35;
     if (boxesL.some(q => ix > q[0] - .35 && ix < q[2] + .35 && iz > q[1] - .35 && iz < q[3] + .35)) continue;
     const mesh = new THREE.Object3D(); mesh.position.set(ix, 0, iz); grp.add(mesh);
     items.push({ type, key, x: ix, z: iz, mesh, nota: (h3(i, j, 18) * T.notas.length) | 0, ph: hi * 50, vis: 0 });
   }
+  memoriasDoBloco(ci * CH, cj * CH, CH, boxesL, grp, items);
   // cacos escondidos: vidro, metal ou tábua solta. Só a lanterna os revela (updateShards)
   for (let a = 0; a < CH; a++) for (let b = 0; b < CH; b++) {
     const i = ci * CH + a, j = cj * CH + b; if (L.prologo || (i === 0 && j === 0) || h3(i, j, 19) >= .04) continue;
@@ -2137,7 +2150,8 @@ function buildChunkForja(ci, cj) {
 // itens e cacos do bloco (= os do index; as chances são parâmetros da Forja). lim: [x0, z0, x1, z1] do bloco
 function itensDoBloco(ci, cj, boxesL, grp, items, shards, lim) {
   const C = L.C, i0 = Math.floor(lim[0] / C), j0 = Math.floor(lim[1] / C), n = Math.round((lim[2] - lim[0]) / C);
-  const pAgua = PAR('itens', 'agua', .022), pPilha = PAR('itens', 'pilha', .014), pNota = PAR('itens', 'nota', .007), pCaco = PAR('itens', 'caco', .04);
+  const pAgua = PAR('itens', 'agua', .022), pPilha = PAR('itens', 'pilha', .014), pNota = PAR('itens', 'nota', 0), pCaco = PAR('itens', 'caco', .04); // bilhete avulso: 0 = só as memórias
+  memoriasDoBloco(i0, j0, n, boxesL, grp, items);
   for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) {
     const i = i0 + a, j = j0 + b; if (L.prologo || (i === 0 && j === 0)) continue;
     const hi = h3(i, j, 15), key = `${levelN}:${i}:${j}`, type = hi < pAgua ? 'agua' : hi < pAgua + pPilha ? 'pilha' : hi < pAgua + pPilha + pNota ? 'nota' : null;
@@ -3055,6 +3069,23 @@ function sombra(x, z, sx, sz, face, forca) {
   if (!m) { m = new THREE.Mesh(contato.geometry, contato.material.clone()); m.position.y = .05; m.renderOrder = -1; scene.add(m); sombras.push(m); }
   sombraN++; m.visible = true; m.position.x = x; m.position.z = z; m.rotation.y = face; m.scale.set(sx, 1, sz); m.material.uniforms.uForca.value = forca;
 }
+// as pessoas do elenco que estão no mundo agora (a mulher fumando, a do canto, a equipe do prólogo, os personagens do gameplay)
+function genteDoElenco() {
+  const out = [];
+  if (woman) out.push({ x: woman.x, z: woman.z, sentada: true });
+  if (corner) out.push({ x: corner.x, z: corner.z, chao: true });
+  for (const e of PRO.cast) out.push({ x: e.x, z: e.z, e });
+  if (GP.on) for (const id in GP.els) if (GP.def[id]?.tipo === 'personagem') for (const no of GP.els[id]) if (no.visible) out.push({ x: no.position.x, z: no.position.z, no });
+  return out;
+}
+// a lâmpada sobre a cabeça de cada um (como a do andarilho: 2,1 m, mesma força e alcance, sem pegar nas paredes): as CABECA_N
+// pessoas mais perto do andarilho, até 16 m (longe a luz nem chega à tela)
+function luzesCabeca(off) {
+  const g = off ? [] : genteDoElenco().map(p => ({ ...p, d: (p.x - player.x) ** 2 + (p.z - player.z) ** 2 })).filter(p => p.d < 256).sort((a, b) => a.d - b.d);
+  for (let k = 0; k < CABECA_N; k++) { const l = cabecaPool[k], p = g[k];
+    if (!p) { l.intensity = 0; continue; }
+    l.position.set(p.x, 2.1, p.z); l.intensity = selfLight.intensity; l.distance = selfLight.distance; l.color.copy(selfLight.color); }
+}
 const passoDe = rig => rig.j && rig.j.leg_L ? Math.max(Math.abs(Math.sin(rig.j.leg_L.o.rotation.x)), Math.abs(Math.sin(rig.j.leg_R.o.rotation.x))) : 0;
 function updateSombras() {
   sombraN = 0;
@@ -3075,12 +3106,17 @@ function updateSombras() {
   if (corner) sombra(corner.x, corner.z, 1.1, 1.2, corner.face, F * .8); // no chão, encolhida
   for (const e of PRO.cast) sombra(e.x, e.z, 1.1, e.anda ? .8 + passoDe(e.rig) * .55 : 1, e.face, e.anda ? F : .28);
   for (const ch of chunks.values()) if (ch.broto) sombra(ch.broto.x, ch.broto.z, 1.1, 1.1, 0, F * .8); // ajoelhada
+  if (GP.on) for (const id in GP.els) if (GP.def[id]?.tipo === 'personagem') for (const no of GP.els[id]) if (no.visible) sombra(no.position.x, no.position.z, 1.1, 1, no.rotation.y, F); // os personagens do gameplay
+  if (VIT.rig && VIT.rig !== prig && VIT.rig.root.parent) sombra(VIT.rig.root.position.x, VIT.rig.root.position.z, 1.1, 1, VIT.rig.root.rotation.y, F); // a vitrine do elenco
   for (let k = sombraN; k < sombras.length; k++) sombras[k].visible = false;
 }
 const player = { x: 0, z: 0, face: 0, anim: new Animator(prig), san: 100, bat: 100, stam: 100, agua: 1, cafe: 0, sip: 0, sipT: 0, lanterna: false, temLanterna: false, hurt: 0, noclipT: 0, stamLock: 0, dead: false, seat: null, ignored: false, sink: 0, batK: 1, holding: false, holdT: 0, holdMax: 8, holdCD: 0, puff: 0, breathT: 0, copo: false, kbT: 0, kbX: 0, kbZ: 0 };
 player.anim.play('Idle_Neutral');
 player.anim.onEvent = name => { if (name.startsWith('Step')) step(player.anim.cur === 'Run_Neutral' ? .3 : .18); };
-const selfLight = new THREE.PointLight(0xffffff, 7.5, 4.2, 2); scene.add(selfLight);
+const selfLight = new THREE.PointLight(0xffffff, 7.5, 4.2, HEAD_DECAY); scene.add(selfLight); // a lâmpada sobre a cabeça: não pega nas paredes
+// a mesma lâmpada sobre a cabeça das pessoas do elenco (equipe, a mulher, a do canto, os personagens do gameplay): um conjunto
+// fixo de luzes (o número de luzes não muda, nada recompila) que vai para as mais perto do andarilho a cada quadro
+const CABECA_N = 4, cabecaPool = []; for (let k = 0; k < CABECA_N; k++) { const p = new THREE.PointLight(0xffffff, 0, 4.2, HEAD_DECAY); scene.add(p); cabecaPool.push(p); }
 const spot = new THREE.SpotLight(0xffffff, 30, 15, .46, .5, 1.4);
 spot.castShadow = true; spot.shadow.mapSize.set(512, 512); spot.shadow.camera.near = .3; spot.shadow.camera.far = 16; spot.shadow.bias = -.002;
 scene.add(spot, spot.target);
@@ -3093,7 +3129,91 @@ const waves = [], drips = [];
 let phone = null, phoneT = 90, thrown = null, breathWaveT = 0;
 const stats = { salas: 0, niveis: 0, notas: new Set(), tempo: 0, afastados: 0 };
 let visited = new Map(), exitSeen = false, spawnT = 25, game = 'title', flash = 0, shake = 0, glitch = 0, fadeT = 0, endT = 0;
-let banner = null, msg = null, noteOpen = -1, levelT = 0, placeName = '';
+let banner = null, msg = null, noteOpen = -1, noteMem = false, levelT = 0, placeName = '';
+// ---------- memórias: N por nível (Forja: Campanha → nível → Memórias), distribuídas com critério (forja/memorias.js).
+// Juntar todas restaura a vida e dá o colecionável do nível (a entrada da campanha traz o objeto: receita ou .glb).
+const MEM = { alvos: [], pegas: new Set(), total: 0, frases: [], premiado: false, mostra: null };
+const COLECAO = 'bolha.colecao'; // a coleção de quem joga (fica no navegador)
+function colecaoLer() { try { return JSON.parse(localStorage.getItem(COLECAO) || '{}') || {}; } catch (e) { return {}; } }
+function colecaoGravar(c) { try { localStorage.setItem(COLECAO, JSON.stringify(c)); } catch (e) { } }
+function memPlanejar() {
+  for (const ch of chunks.values()) for (let k = ch.items.length - 1; k >= 0; k--) if (ch.items[k].mem !== undefined) { ch.grp.remove(ch.items[k].mesh); ch.items.splice(k, 1); }
+  if (MEM.mostra?.o) scene.remove(MEM.mostra.o);
+  const cfg = cfgMemorias(PAR), n = L.prologo || levelN < 0 || qs.has('bancada') ? 0 : cfg.qtd;
+  Object.assign(MEM, { alvos: [], pegas: new Set(), total: n, premiado: false, mostra: null, frases: frasesMemorias(n, L.campanha?.memorias?.frases, T.notas, levelN) });
+  if (!n) return;
+  const C = L.C, r = mulberry32(SEED ^ 0x4d454d);
+  MEM.alvos = planoMemorias(cfg, [player.x, player.z], [(EXIT.i + .5) * C, (EXIT.j + .5) * C], r);
+  if (!MUNDO_F) return; // o gerador do index: cada bloco encaixa a sua na célula livre mais perto (memoriasDoBloco)
+  for (const a of MEM.alvos) { // nível da Forja: o chão livre mais perto, dentro se o nível é fechado (como a saída)
+    const i0 = Math.floor(a.x / C), j0 = Math.floor(a.z / C);
+    achou: for (let q = 0; q < 10; q++) for (let di = -q; di <= q; di++) for (let dj = -q; dj <= q; dj++) {
+      if (Math.max(Math.abs(di), Math.abs(dj)) !== q) continue;
+      const x = (i0 + di + .5) * C, z = (j0 + dj + .5) * C;
+      if (MUNDO_F.livre(x, z, .7) && !MUNDO_F.externo(x, z) === !MUNDO_F.aberto) { a.x = x; a.z = z; a.fixo = true; break achou; }
+    }
+  }
+}
+// as memórias que caem neste bloco (células [i0, i0+n) × [j0, j0+n)): no ponto do plano, ou na célula livre mais perto
+function memoriasDoBloco(i0, j0, n, boxesL, grp, items) {
+  const C = L.C, livre = (x, z) => !boxesL.some(q => x > q[0] - .35 && x < q[2] + .35 && z > q[1] - .35 && z < q[3] + .35);
+  for (const a of MEM.alvos) {
+    if (MEM.pegas.has(a.k)) continue;
+    const ti = Math.floor(a.x / C), tj = Math.floor(a.z / C);
+    if (ti < i0 || ti >= i0 + n || tj < j0 || tj >= j0 + n) continue;
+    let pos = a.fixo && livre(a.x, a.z) ? [a.x, a.z] : null;
+    for (let q = 0; !pos && q < n; q++) for (let di = -q; di <= q && !pos; di++) for (let dj = -q; dj <= q && !pos; dj++) {
+      if (Math.max(Math.abs(di), Math.abs(dj)) !== q) continue;
+      const i = ti + di, j = tj + dj; if (i < i0 || i >= i0 + n || j < j0 || j >= j0 + n || (i === 0 && j === 0)) continue;
+      const x = (i + .5) * C, z = (j + .5) * C; if (livre(x, z) && (!MUNDO_F || MUNDO_F.livre(x, z, .5))) pos = [x, z];
+    }
+    pos = pos || [(ti + .5) * C, (tj + .5) * C];
+    const mesh = new THREE.Object3D(); mesh.position.set(pos[0], 0, pos[1]); grp.add(mesh);
+    items.push({ type: 'nota', mem: a.k, key: `mem:${levelN}:${a.k}`, x: pos[0], z: pos[1], mesh, nota: a.k, ph: a.k * 1.7, vis: 0 });
+  }
+}
+function memFechou() { if (MEM.total && !MEM.premiado && MEM.pegas.size >= MEM.total) memPremiar(); }
+function memPremiar() {
+  MEM.premiado = true; player.san = Math.max(player.san, cfgMemorias(PAR).vida); sfx('floresce');
+  try { CI.evento('memorias', { n: levelN }); } catch (e) { }
+  const c = L.campanha?.colecionavel;
+  if (!c) { showBanner('MEMÓRIAS COMPLETAS', 'a vida voltou'); return; }
+  const col = colecaoLer(); col[c.id] = { nome: c.nome, texto: c.texto, nivel: L.nome, quando: Date.now() }; colecaoGravar(col);
+  const M = MEM.mostra = { t: 0, o: null, c };
+  colecMalha(c).then(o => { if (MEM.mostra === M) { M.o = o; scene.add(o); } }).catch(e => console.warn('colecionável', e));
+}
+const COLEC_GEO = new Map(); let colecMat = null;
+async function colecMalha(c) {
+  let geo = COLEC_GEO.get(c.id);
+  if (!geo) {
+    if (c.glb) geo = await new Promise(ok => new GLTFLoader().load(c.glb, gl => ok(geoDoGltf(gl.scene)), undefined, () => ok(null)));
+    if (!geo && c.receita?.length) geo = malhaDaReceita(THREE, c.receita, hue);
+    if (!geo) { geo = new THREE.OctahedronGeometry(.3).toNonIndexed(); const n = geo.attributes.position.count, cr = hue('AC') || new THREE.Color(1, .8, .6); geo.setAttribute('color', new THREE.Float32BufferAttribute(Array.from({ length: n }, () => [cr.r, cr.g, cr.b]).flat(), 3)); }
+    geo.computeBoundingBox(); const b = geo.boundingBox, sz = b.getSize(new THREE.Vector3()), ce = b.getCenter(new THREE.Vector3());
+    geo.translate(-ce.x, -ce.y, -ce.z); const k = .7 / Math.max(sz.x, sz.y, sz.z, .01); geo.scale(k, k, k);
+    geo.setAttribute('bake', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count).fill(1), 1));
+    COLEC_GEO.set(c.id, geo);
+  }
+  colecMat = colecMat || bakedMat({ cut: false });
+  const o = new THREE.Group(), m = new THREE.Mesh(geo, colecMat), luz = new THREE.PointLight(0xfff1d8, 8, 5, 1.6);
+  m.castShadow = true; luz.position.y = .6; o.add(m, luz); o.scale.setScalar(.001); return o;
+}
+const COLEC_DUR = 7;
+function memAtualizar(dt) {
+  const M = MEM.mostra; if (!M) return; M.t += dt;
+  if (M.o) { const t = M.t, s = t < .5 ? 1 + 1.7 * (t / .5 - 1) ** 3 + .7 * (t / .5 - 1) ** 2 : t > COLEC_DUR - .7 ? Math.max(0, (COLEC_DUR - t) / .7) : 1;
+    M.o.scale.setScalar(Math.max(.001, s)); M.o.position.set(player.x, 2.1 + Math.sin(t * 2.2) * .08, player.z); M.o.rotation.y += dt * 1.4; }
+  if (M.t > COLEC_DUR) { if (M.o) scene.remove(M.o); MEM.mostra = null; }
+}
+function drawColec() {
+  const M = MEM.mostra, c = M.c, a = clamp(Math.min(M.t / .4, (COLEC_DUR - M.t) / .7), 0, 1), W = 300, X = 256 - W / 2;
+  const ls = c.texto ? wrapText(c.texto, W, 'm', 10).slice(0, 3) : [], H = 52 + ls.length * 14;
+  g.globalAlpha = a * .6; g.fillStyle = '#000'; g.fillRect(X - 10, 58, W + 20, H); g.globalAlpha = a;
+  icon(g, 'colec', X, 66, 1.6); txt(g, 'MEMÓRIAS COMPLETAS · VIDA RESTAURADA', X + 14, 73.5, 'm', 10, Z.greyL);
+  rule(g, X, 82, W); txt(g, (c.nome || 'colecionável').toUpperCase(), X, 99, 'm', 12, Z.cream, { max: W });
+  ls.forEach((l, i) => txt(g, l, X, 116 + i * 14, 'm', 10, Z.greyL));
+  g.globalAlpha = 1;
+}
 
 const ROOM_NAMES = { rh: 'recursos humanos', escritorio: 'sala dos terminais', maquinas: 'sala das fitas', reuniao: 'sala de reunião', estar: 'sala de espera', cafe: 'copa', arquivo: 'arquivo', vazio: 'sala vazia', salao: 'salão de pilares', piscina: 'piscina', corredor: 'corredor', circulo: 'sala do círculo', tvs: 'sala das televisões', mata: 'salão da mata', campo: 'campo de cadeiras', espelhos: 'campo de espelhos', canal: 'canal alagado', estrada: 'estrada' };
 function startLevel(n) {
@@ -3122,6 +3242,8 @@ function startLevel(n) {
   const nv = new THREE.Color(L.nevoa ? L.nevoa.cor : 0); scene.fog.color.copy(nv); scene.background.copy(nv); // níveis abertos: névoa na cor da paleta em vez de breu
   player.x = player.z = .5 * L.C; player.face = Math.PI;
   forjaIniciar(); if (MUNDO_F) { [player.x, player.z] = MUNDO_F.inicio(); const e0 = [EXIT.i, EXIT.j]; achou: for (let r = 0; r < 12; r++) for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) { if (Math.max(Math.abs(a), Math.abs(b)) !== r) continue; const i = e0[0] + a, j = e0[1] + b; if (MUNDO_F.livre((i + .5) * L.C, (j + .5) * L.C, .9) && !MUNDO_F.externo((i + .5) * L.C, (j + .5) * L.C) === !MUNDO_F.aberto) { EXIT.i = i; EXIT.j = j; break achou; } } } player.noclipT = 0; player.seat = null; player.ignored = false; player.holding = false; player.holdT = 0;
+  navAplicaNivel(); // a Orientação do nível (Campanha → Nível) por cima da geral
+  memPlanejar(); // as memórias do nível: N faixas do início até a saída (forja/memorias.js)
   visited = new Map(); exitSeen = false; spawnT = L.criaturas[0] === 'tripe' ? 8 : Math.max(5, 9 - n * 2); levelT = 0; placeName = '';
   // cada nível só tem o que é dele: a mulher, o gato, os brotos, a piscina e as cafeteiras ficam no escritório
   buildExit(); updateChunks(player.x, player.z, true); placeCat(L.escritorio ? CAT_CHANCE : 0); placeWoman(); removeCorner();
@@ -3368,9 +3490,11 @@ function updatePlayer(dt, t) {
     collected.add(it.key); ch.grp.remove(it.mesh); ch.items.splice(k, 1);
     if (it.type === 'agua') { if (player.agua < 3) { player.agua++; showMsg('água de amêndoa  [R] beber'); } else { player.san = Math.min(100, player.san + 30); showMsg('bebeu a água de amêndoa'); } sfx('pegar_agua'); }
     else if (it.type === 'pilha') { player.bat = Math.min(100, player.bat + 45); showMsg('pilha nova'); sfx('pegar_pilha'); }
-    else { noteOpen = it.nota; stats.notas.add(it.nota); game = 'note'; sfx('pegar_bilhete'); }
+    else if (it.mem !== undefined) { MEM.pegas.add(it.mem); noteOpen = it.mem; noteMem = true; stats.notas.add(`${levelN}:${it.mem}`); game = 'note'; sfx('pegar_bilhete'); }
+    else { noteOpen = it.nota; noteMem = false; stats.notas.add(it.nota); game = 'note'; sfx('pegar_bilhete'); }
     gpJogo('pegou_objeto', 'Pickup');
   }
+  memAtualizar(dt); // o colecionável aparecendo sobre o andarilho
   gpInteracao(); // [E] nos elementos do gameplay da Forja
   // telefone tocando: [E] atende e o som para
   if (phone && Math.hypot(phone.x - player.x, phone.z - player.z) < 1.1) {
@@ -4335,6 +4459,7 @@ const ICONS = {
   eye: ['.###.', '#...#', '#.#.#', '#...#', '.###.'],
   coffee: ['.#.#.', '#.#..', '####.', '#####', '.##..'], cat: ['#...#', '#####', '#.#.#', '#####', '.###.'],
   phone: ['#####', '#.#.#', '..#..', '.###.', '.###.'],
+  colec: ['..#..', '.###.', '#####', '.###.', '..#..'], // o colecionável que as memórias dão
 };
 // a fonte da referência, recriada em UI/NewRef/build_fonte.py: m = textos; d = letreiro, com as letras em riscos horizontais
 const FONTES_INDEX = { m: '"Mercat Recriada", Consolas, monospace', d: '"Mercat Recriada Horizontal", "Mercat Recriada", monospace' };
@@ -4440,7 +4565,9 @@ function worldIcon(it, y, name, col, dt, lanterna = false) {
   let alvo = see ? 1 : 0;
   if (lanterna && see) { // lanterna = true: só aparece no cone da luz. O único item visível sem ela é a própria lanterna
     const lit = player.lanterna && player.bat > 0 && d < 11 && ((it.x - player.x) * aimX + (it.z - player.z) * aimZ) / Math.max(d, 1e-3) > Math.cos(.46);
-    alvo = lit ? 1 : player.temLanterna && player.bat <= 0 ? PAR('lanterna', 'sem_pilha_vis', .3) * player.escuro : 0; // sem pilha: os olhos se acostumam ao escuro
+    // sem pilha: os olhos se acostumam ao escuro. sem_pilha_vis é o quanto se VÊ: o ícone passa pelo pontilhado/CRT, onde opacidade .3
+    // some de vez (medido: só ~.75 parece "30% visível"), então a opacidade é a raiz quarta do valor (.3 → .74, 1 → 1, 0 → 0)
+    alvo = lit ? 1 : player.temLanterna && player.bat <= 0 ? Math.pow(clamp(+PAR('lanterna', 'sem_pilha_vis', .3), 0, 1), .25) * player.escuro : 0;
   }
   it.vis += (alvo - it.vis) * Math.min(1, dt * 6);
   if (it.vis < .02) return;
@@ -4489,10 +4616,11 @@ function drawStatus() {
   icon(g, 'coffee', 166, 472, 1.6, has ? Z.cream : DIM, has); if (player.cafe > 0) meter(180, 473, 40, player.cafe / 100, player.cafe < 20); else if (player.copo) keycap(g, 'G', 180, 470, 12);
 }
 function drawResources(t) {
+  if (MEM.total) { icon(g, 'note', 434, 418, 1.6, MEM.premiado ? Z.cream : Z.greyL); txt(g, `${MEM.pegas.size}/${MEM.total}`, 488, 425.5, 'm', 11, MEM.premiado ? Z.cream : Z.greyL, { align: 'right' }); }
   for (let k = 0; k < 3; k++) icon(g, 'almond_water', 488 - 8 - (2 - k) * 12, 436, 1.6, k < player.agua ? Z.cream : DIM, k < player.agua);
   icon(g, 'map', 434, 454, 1.6); txt(g, `${stats.salas}`, 488, 461.5, 'm', 11, Z.cream, { align: 'right' });
-  if (NAV.modo === 'sinal') drawSinal(t, Math.hypot(exitGrp.position.x - player.x, exitGrp.position.z - player.z));
-  else if (NAV.modo === 'trilha' && NAV.trilha_quando === 'tecla') { const w = keycap(g, navRotulo(), 434, 470, 12); txt(g, 'TRILHA', 438 + w, 478.8, 'm', 8.5, NAVT.ate > 0 ? Z.cream : Z.greyL); }
+  if (navTem('sinal')) drawSinal(t, Math.hypot(exitGrp.position.x - player.x, exitGrp.position.z - player.z));
+  if (navTem('trilha') && NAV.trilha_quando === 'tecla') { const w = keycap(g, navRotulo(), 434, 470, 12); txt(g, 'TRILHA', 438 + w, 478.8, 'm', 8.5, NAVT.ate > 0 ? Z.cream : Z.greyL); }
 }
 function drawSinal(t, de) {
   const sig = Math.round(sstep(140, 6, de) * 6), on = !(sig >= 5 && Math.floor(t * 3) % 2);
@@ -4508,10 +4636,19 @@ function drawSinal(t, de) {
            linha, cor, opacidade, espessura, espaço, brilho, pulso) vem todo da Forja: trilha_* em interface.nav
    Os itens do gameplay (as peças do carro…) entram junto se "itens" estiver ligado; com a saída trancada esperando o
    objetivo, o alvo principal (e a trilha) é a peça mais perto. */
-const NAV_PADRAO = { modo: 'sinal', itens: true, alcance: 40, tamanho: 64, distancia: true, tecla: 'KeyY', trilha_s: 6, trilha_auto: 0,
+const NAV_PADRAO = { modo: 'sinal', modo2: 'nenhum', alavancas: false, itens: true, alcance: 40, tamanho: 64, distancia: true, tecla: 'KeyY', trilha_s: 6, trilha_auto: 0,
   trilha_quando: 'lanterna', trilha_tipo: 'pontos', trilha_cor: '#e8b64c', trilha_opacidade: .8, trilha_espessura: 3, trilha_espaco: .7,
   trilha_brilho: .4, trilha_pulso: .25, trilha_onda: 7, trilha_corre: 14, trilha_alcance: 14, trilha_borda: .5 };
-let NAV = { ...NAV_PADRAO, ...(JOGO.interface?.nav || {}) };
+let NAV_GERAL = { ...NAV_PADRAO, ...(JOGO.interface?.nav || {}) }; // Jogo → Interface → Navegação
+let NAV = { ...NAV_GERAL }; // o que vale agora: o geral + a Orientação do nível (Campanha → Nível), navAplicaNivel
+// no veículo (o gameplay travou o andar com gp.travar(true): o carro do Cars…) vale a Orientação "no veículo" do nível
+// (Campanha → Nível → Orientação → No veículo: ajustes.navegacao_veiculo) por cima da de a pé; vazio = igual a pé
+let NAV_VEICULO = false;
+function navNoVeiculo(sim) { sim = !!sim; if (sim === NAV_VEICULO) return; NAV_VEICULO = sim; navAplicaNivel(); }
+// dois sistemas ao mesmo tempo (Campanha → Nível → Orientação → "junto com"): modo e modo2 desenham os dois, do mesmo alvo
+const NAV_MODOS = ['sinal', 'marca', 'bussola', 'seta', 'trilha', 'nenhum'];
+const navTem = (m) => NAV.modo === m || NAV.modo2 === m;
+function navAplicaNivel() { const q0 = NAV.trilha_quando, m0 = NAV.modo + '|' + NAV.modo2; NAV = { ...NAV_GERAL, ...navNivelAgora() }; if (q0 !== NAV.trilha_quando || m0 !== NAV.modo + '|' + NAV.modo2) { NAVT.ate = 0; NAVT.lig = 0; } NAVT.refaz = 0; }
 const NAVT = { ate: 0, tot: 1, pts: [], auto: 0, lig: 0, refaz: 0, luz: 0 };
 const navRotulo = () => String(NAV.tecla || 'KeyY').replace(/^Key|^Digit/, '');
 // o que procurar: a saída (ou o RH no prólogo) e os itens do gameplay que ainda faltam
@@ -4520,6 +4657,7 @@ function navAlvos() {
   if (L.prologo && PRO.etapa === 'andar') out.push({ x: PRO.mesa.x, z: PRO.mesa.z, ic: 'note', saida: true });
   else if (exitGrp.position.y > -10) out.push({ x: exitGrp.position.x, z: exitGrp.position.z, ic: 'door', saida: true, trancada: GP.trancada });
   if (NAV.itens) for (const no of gpPendentes()) out.push(no);
+  if (NAV.alavancas) for (const a of navAlavancas()) out.push(a);
   for (const a of out) a.d = Math.hypot(a.x - player.x, a.z - player.z);
   return out;
 }
@@ -4532,19 +4670,32 @@ function gpPendentes() {
     for (const no of GP.els[id]) if (no.visible && !no.userData.pego && (e.tipo === 'item' || no.userData.usa)) out.push({ x: no.position.x, z: no.position.z, ic, el: id }); }
   return out;
 }
-// o alvo principal: a saída; com ela trancada esperando o objetivo, a peça mais perto
+// as alavancas das salas trancadas (cada portão tem a sua, na mesma sala: ch.levers[i] ↔ ch.portoes[i]) ainda não puxadas,
+// nos blocos montados em volta. Ligado em Campanha → Nível → Orientação → "alavancas das portas trancadas"
+function navAlavancas() {
+  const out = [];
+  for (const ch of chunks.values()) ch.levers.forEach((a, i) => { if (!collected.has(a.key)) out.push({ x: a.x, z: a.z, ic: 'gear', alav: true, portao: ch.portoes[i] }); });
+  return out;
+}
+// o alvo principal: a saída; com ela trancada esperando o objetivo, a peça mais perto. Perto (6 m) de um portão trancado,
+// a alavanca dele vira o alvo (com as alavancas ligadas): é ela que abre o caminho
 function navFoco(al) {
+  const lv = al.filter(a => a.alav && a.portao && Math.hypot(a.portao.x - player.x, a.portao.z - player.z) < 6).sort((a, b) => a.d - b.d)[0];
+  if (lv) return lv;
   const s = al.find(a => a.saida), it = al.filter(a => !a.saida).sort((a, b) => a.d - b.d)[0];
   return s && !(s.trancada && it) ? s : it || s || null;
 }
 const navM = d => `${Math.round(d)}M`;
 function drawNav(dt, t) {
-  if (game !== 'play' || CC.on || NAV.modo === 'sinal' || NAV.modo === 'nenhum') return;
+  if (game !== 'play' || CC.on) return;
+  const modos = [...new Set([NAV.modo, NAV.modo2])].filter(m => m && m !== 'sinal' && m !== 'nenhum'); if (!modos.length) return;
   const al = navAlvos(), foco = navFoco(al);
-  if (NAV.modo === 'marca') navMarca(al, foco, t);
-  else if (NAV.modo === 'bussola') navBussola(al, foco, t);
-  else if (NAV.modo === 'seta') navSeta(al, foco, t);
-  else if (NAV.modo === 'trilha') navTrilhaDesenha(dt, t);
+  for (const m of modos) {
+    if (m === 'marca') navMarca(al, foco, t);
+    else if (m === 'bussola') navBussola(al, foco, t);
+    else if (m === 'seta') navSeta(al, foco, t);
+    else if (m === 'trilha') navTrilhaDesenha(dt, t);
+  }
 }
 // 1. a marca: só pontos num quadro pequeno, norte em cima (a câmera do jogo nunca gira); nada de paredes
 function navMarca(al, foco, t) {
@@ -4555,6 +4706,7 @@ function navMarca(al, foco, t) {
     if (fora) { dx *= lim / m; dy *= lim / m; }
     const px = cx + dx, py = cy + dy, ehF = a === foco;
     if (a.saida) { if (fora) { g.fillStyle = Z.cream; g.fillRect(px - 2, py - 2, 4, 4); } else icon(g, a.ic, px - 4, py - 4, 1.6, a.trancada ? Z.greyL : Z.cream); }
+    else if (a.alav && !fora) icon(g, 'gear', px - 3, py - 3, 1.2, ehF && Math.floor(t * 3) % 2 ? Z.cream : Z.greyL);
     else { g.fillStyle = ehF ? Z.cream : Z.greyL; const r = ehF && Math.floor(t * 3) % 2 ? 2 : 1.5; g.fillRect(px - r, py - r, r * 2, r * 2); }
   }
   if (Math.floor(t * 3.3) % 2) { g.fillStyle = Z.cream; g.fillRect(cx - 1.5, cy - 1.5, 3, 3); }
@@ -4644,7 +4796,7 @@ function navTrilha(quieto) {
 // lanterna: a trilha só existe dentro do cone da lanterna (como os cacos, updateShards), e corre a partir do personagem ao acender.
 // sempre: sempre acesa. tecla: acende na tecla (ou sozinha a cada trilha_auto s) e some em trilha_s segundos.
 function navTrilhaDesenha(dt, t) {
-  const Q = NAV.trilha_quando || 'lanterna', luzOn = player.lanterna && player.bat > 0, semPilha = player.temLanterna && player.bat <= 0;
+  const Q = L.prologo && (NAV.trilha_quando || 'lanterna') === 'lanterna' ? 'sempre' : NAV.trilha_quando || 'lanterna', /* o prólogo não tem lanterna */ luzOn = player.lanterna && player.bat > 0, semPilha = player.temLanterna && player.bat <= 0;
   let frente, some = 1;
   if (semPilha && Q === 'tecla') { NAVT.ate = 0; return; } // a pilha acabou: o caminho não aparece (em nenhum modo)
   if (Q === 'tecla') {
@@ -4662,8 +4814,19 @@ function navTrilhaDesenha(dt, t) {
   navTrilhaPinta(NAVT.pts, frente, some, t, Q === 'lanterna');
 }
 // pinta a trilha: tipo pontos · traco · linha · setas · bolinhas · pegadas
+// por nível (Campanha → Nível → Caminho até a saída): ajustes.navegacao.trilha_cor / trilha_opacidade / trilha_brilho passam por cima do global
+function navNivelAgora() { return { ...navNivel(), ...(NAV_VEICULO ? navNivel(L?.ajustes?.navegacao_veiculo) : {}) }; }
+function navNivel(a = L?.ajustes?.navegacao) { const o = {}; a = a || {};
+  if (NAV_MODOS.includes(a.modo)) o.modo = a.modo; // o estilo de orientação deste nível
+  if (NAV_MODOS.includes(a.modo2)) o.modo2 = a.modo2; // e um segundo, junto (ex.: a trilha + a janelinha)
+  if (typeof a.alavancas === 'boolean') o.alavancas = a.alavancas; // as alavancas das portas trancadas entram como alvo
+  if (['lanterna', 'tecla', 'sempre'].includes(a.trilha_quando)) o.trilha_quando = a.trilha_quando;
+  if (['pontos', 'traco', 'linha', 'setas', 'bolinhas', 'pegadas'].includes(a.trilha_tipo)) o.trilha_tipo = a.trilha_tipo;
+  if (/^#[0-9a-f]{6}$/i.test(a.trilha_cor || '')) o.trilha_cor = a.trilha_cor;
+  for (const k of ['trilha_opacidade', 'trilha_brilho', 'trilha_espessura']) if (a[k] !== undefined && a[k] !== '' && Number.isFinite(+a[k])) o[k] = +a[k];
+  return o; }
 function navTrilhaPinta(pts, frente, some, t, cone) {
-  const N = NAV, tipo = N.trilha_tipo || 'pontos', esp = clamp(+N.trilha_espessura || 3, .5, 12), op = clamp(+N.trilha_opacidade, 0, 1) * some;
+  const N = { ...NAV, ...navNivelAgora() }, tipo = N.trilha_tipo || 'pontos', esp = clamp(+N.trilha_espessura || 3, .5, 12), op = clamp(+N.trilha_opacidade, 0, 1) * some;
   if (op <= 0 || !pts.length) return;
   const alc = clamp(+N.trilha_alcance || 14, 2, 120), cA = Math.cos(.46), cB = Math.cos(.46 * (1 - clamp(+N.trilha_borda || 0, 0, .95)));
   const puls = clamp(+N.trilha_pulso || 0, 0, 1), onda = +N.trilha_onda || 0, vis = [];
@@ -4807,12 +4970,13 @@ function drawMedidores() {
 function drawNote() {
   dimScreen(.78);
   const n = noteOpen, X = 136, W = 240;
-  icon(g, 'note', X, 146, 1.6); txt(g, `MEMO ${String(n + 1).padStart(3, '0')}`, X + 14, 153.5, 'm', 10);
-  txt(g, `${stats.notas.size}/${T.notas.length}`, X + W, 153.5, 'm', 10, Z.greyL, { align: 'right' });
+  icon(g, 'note', X, 146, 1.6); txt(g, noteMem ? `MEMÓRIA ${String(n + 1).padStart(2, '0')}` : `MEMO ${String(n + 1).padStart(3, '0')}`, X + 14, 153.5, 'm', 10);
+  txt(g, noteMem ? `${MEM.pegas.size}/${MEM.total}` : `${stats.notas.size}/${T.notas.length}`, X + W, 153.5, 'm', 10, Z.greyL, { align: 'right' });
   rule(g, X, 162, W);
-  const [frase, autor] = T.notas[n], ls = wrapText(`“${frase}”`, W, 'm', 12);
+  const [frase, autor] = (noteMem ? MEM.frases[n] : T.notas[n]) || ['', ''], ls = wrapText(`“${frase}”`, W, 'm', 12);
   ls.forEach((l, i) => txt(g, l, X, 186 + i * 17, 'm', 12));
-  txt(g, `— ${autor.toUpperCase()}`, X + W, 186 + ls.length * 17 + 10, 'm', 10, Z.greyL, { align: 'right', max: W });
+  if (autor) txt(g, `— ${autor.toUpperCase()}`, X + W, 186 + ls.length * 17 + 10, 'm', 10, Z.greyL, { align: 'right', max: W });
+  if (noteMem && MEM.pegas.size >= MEM.total && !MEM.premiado) txt(g, 'A ÚLTIMA. ELAS SE JUNTAM…', X, 312, 'm', 10, Z.cream);
   const kw = keyW('E', 14); keycap(g, 'E', X, 330); txt(g, 'GUARDAR', X + kw + 6, 340.5, 'm', 10, Z.greyL);
 }
 function drawMap() {
@@ -4857,26 +5021,34 @@ function drawHelp() {
   (entrada === 'controle' ? HELP_PAD : entrada === 'toque' ? HELP_TOQUE : HELP_KEYS).forEach(([k, l], i) => { const Y = 94 + i * 24, kw = keyW(k, 14); keycap(g, k, kx - 10 - kw, Y); txt(g, '>', kx - 6, Y + 10.5, 'm', 10); txt(g, l, kx + 4, Y + 10.5, 'm', 10, Z.cream, { max: W - 68 }); });
 }
 // escolha de nível (tecla L, para depurar): setas ou W/S e Enter, ou direto o número; L ou Esc volta sem mudar nada
-const LEVEL_MENU = 10;
+// o menu L (escolher nível) é da campanha da Forja: os níveis marcados "no menu L" (menu !== false) e o prólogo se marcado
+// (menu === true), na ordem dela, sem as voltas mais fundas do ciclo; sem campanha, os níveis-base; no máximo 10 (teclas 0–9)
+function levelLista() { const c = JOGO.campanha;
+  if (!c?.niveis?.length) return LEVELS.map((_, i) => i).slice(0, 10);
+  return [...(c.prologo?.menu === true ? [-1] : []), ...c.niveis.map((n, i) => n.menu === false ? -2 : i).filter(i => i > -2)].slice(0, 10); }
+const levelMenu = () => Math.max(1, levelLista().length);
+function levelVai(k) { const n = levelLista()[k]; if (n === undefined) return false; if (n < 0) startPrologo(); else startLevel(n); return true; }
 let levelSel = 0, levelsFrom = 'play';
 function levelKey(code) {
   if (code === 'KeyL' || code === 'Escape') { game = levelsFrom; return; }
-  if (code === 'ArrowUp' || code === 'KeyW') levelSel = mod(levelSel - 1, LEVEL_MENU);
-  if (code === 'ArrowDown' || code === 'KeyS') levelSel = mod(levelSel + 1, LEVEL_MENU);
+  if (code === 'ArrowUp' || code === 'KeyW') levelSel = mod(levelSel - 1, levelMenu());
+  if (code === 'ArrowDown' || code === 'KeyS') levelSel = mod(levelSel + 1, levelMenu());
   const digit = code.startsWith('Digit') ? +code[5] : code.startsWith('Numpad') ? +code[6] : NaN;
+  if (digit >= levelMenu()) return; // não está na campanha
   if (digit >= 0 || code === 'Enter' || code === 'Space') {
-    const n = digit >= 0 ? digit : levelSel;
+    const k = digit >= 0 ? digit : levelSel;
     keys.delete(code); if (levelsFrom === 'title') newRun();
-    startLevel(n); game = 'play';
+    if (levelVai(k)) game = 'play';
   }
 }
 function drawLevels() {
   dimScreen(.85);
   const X = 120, W = 272;
   txt(g, 'ESCOLHER NÍVEL', X, 72.5, 'm', 10); txt(g, 'DEBUG', X + W, 72.5, 'm', 10, Z.greyL, { align: 'right' }); rule(g, X, 81, W);
-  for (let k = 0; k < LEVEL_MENU; k++) {
-    const Y = 94 + k * 26, sel = k === levelSel; txt(g, `.${String(k).padStart(2, '0')} >`, X, Y + 10.5, 'm', 10);
-    txt(g, levelDef(k).sub.toUpperCase(), X + 34, Y + 10.5, 'm', 10, sel ? Z.cream : Z.greyL, { max: W - 48 });
+  const lista = levelLista(); if (!lista.length) txt(g, 'NENHUM NÍVEL NO MENU (CAMPANHA, NA FORJA)', X, 104.5, 'm', 9, Z.greyL, { max: W });
+  for (let k = 0; k < lista.length; k++) {
+    const Y = 94 + k * 26, sel = k === levelSel, d = levelDef(lista[k]); txt(g, `.${String(k).padStart(2, '0')} >`, X, Y + 10.5, 'm', 10);
+    txt(g, (d.sub || d.nome || '').toUpperCase(), X + 34, Y + 10.5, 'm', 10, sel ? Z.cream : Z.greyL, { max: W - 48 });
     if (sel) txt(g, '<', X + W, Y + 10.5, 'm', 10, Z.cream, { align: 'right' });
   }
   txt(g, entrada === 'controle' ? 'A: ENTRAR    B: VOLTAR' : 'NÚMERO OU ENTER: ENTRAR    L: VOLTAR', X, 372.5, 'm', 9, Z.greyL, { max: W });
@@ -4935,7 +5107,7 @@ function desenhaCapaNos(t) {
   const estilo = AB.estilo, nos = (AB.capa_nos || {})[estilo] || [], muda = (estilo === 'bolhas' ? AB.capa_bolhas : AB.capa) || {};
   const val = (n, k) => muda[n.caminho] && k in muda[n.caminho] ? muda[n.caminho][k] : n[k];
   const filhos = new Map(); for (const n of nos) { if (n.raiz) continue; if (!filhos.has(n.pai)) filhos.set(n.pai, []); filhos.get(n.pai).push(n); }
-  const vis = (n) => val(n, 'visivel') !== false;
+  const vis = (n) => val(n, 'visivel') !== false && (n.caminho !== 'Atalhos' || !!AB.atalhos); // atalhos: só se a Forja pedir (a ajuda é a tecla H)
   const texto = (n) => n.tecla ? padLabel(String(val(n, 'texto') ?? '')) : String(val(n, 'texto') ?? '');
   const mede = (n) => { capaFonte(g, val(n, 'fonte'), val(n, 'tamanho')); const m = g.measureText(texto(n)); const asc = m.fontBoundingBoxAscent ?? val(n, 'tamanho') * .8, desc = m.fontBoundingBoxDescent ?? val(n, 'tamanho') * .25; return { w: m.width, h: asc + desc, asc }; };
   const largura = (n) => n.tipo === 'Label' ? mede(n).w : n.tipo?.endsWith('BoxContainer') ? (() => { const fs = (filhos.get(n.caminho) || []).filter(vis); return fs.reduce((a, f) => a + largura(f), 0) + Math.max(0, fs.length - 1) * (n.separacao || 0); })() : 0;
@@ -4971,7 +5143,8 @@ function desenhaCapaNos(t) {
   };
   g.save(); g.setTransform(UI.width / 1024, 0, 0, UI.height / 1024, 0, 0);
   const a0 = g.globalAlpha;
-  for (const n of filhos.get('.') || []) desenhaSolto(n, 0, 0, 1024, 1024, a0);
+  const dy = +AB.texto_y || 0; // Jogo → Abertura → Bloco de texto: os textos sobem/descem juntos; o bloco rosa (ColorRect) fica
+  for (const n of filhos.get('.') || []) desenhaSolto(n, 0, n.tipo === 'ColorRect' ? 0 : dy, 1024, 1024, a0);
   g.restore(); if ('letterSpacing' in g) g.letterSpacing = '0px';
 }
 // a prévia da Forja (Jogo → Abertura): onde cada texto está, em fração da janela do jogo (com a curva do CRT), para clicar
@@ -4987,7 +5160,7 @@ function drawEnd(dt, t) {
   endT += dt; const a = clamp((endT - 1.2) * 1.2, 0, 1);
   dimScreen(.7 * a);
   g.globalAlpha = a;
-  const st = [['map', `${stats.salas}`], ['door', `${stats.niveis}`], ['note', `${stats.notas.size}/${T.notas.length}`], ['eye', `${stats.afastados}`]];
+  const st = [['map', `${stats.salas}`], ['door', `${stats.niveis}`], ['note', `${stats.notas.size}`], ['colec', `${Object.keys(colecaoLer()).length}`], ['eye', `${stats.afastados}`]];
   const ws = st.map(([, v]) => 14 + measure('m', 10, v)), W = ws.reduce((p, w) => p + w + 18, -18);
   let X = 256 - W / 2;
   st.forEach(([ic, v], i) => { icon(g, ic, X, 228, 1.6); txt(g, v, X + 14, 235.5, 'm', 10); X += ws[i] + 18; });
@@ -5043,13 +5216,14 @@ function drawBalao(dt) {
   if (!balao) return;
   balao.t -= dt; if (balao.t <= 0 || !balao.e.rig.root.parent || Math.hypot(balao.e.x - player.x, balao.e.z - player.z) > 9) { balao = null; return; } // quem ficou para trás não fala sozinho
   const e = balao.e; _iv.set(e.x, e.alt, e.z).project(camera); if (_iv.z > 1) return;
-  const [X0, Y0] = toUI(_iv), ls = wrapText(balao.s, 176, 'm', 11), nome = e.q.nome;
-  const W = Math.max(measure('m', 8.5, nome), ...ls.map(l => measure('m', 11, l))) + 16, H = ls.length * 14 + 21;
+  const comNome = PAR('prologo', 'balao_nome', false) === true; // Campanha → Prólogo → Balões de fala: o nome de quem fala (padrão: sem)
+  const [X0, Y0] = toUI(_iv), ls = wrapText(balao.s, 176, 'm', 11), nome = comNome ? e.q.nome : '';
+  const W = Math.max(nome ? measure('m', 8.5, nome) : 0, ...ls.map(l => measure('m', 11, l))) + 16, H = ls.length * 14 + (nome ? 21 : 9);
   const X = clamp(X0 - W / 2, 8, 504 - W), Y = clamp(Y0 - H - 8, 8, 500 - H), bx = clamp(X0, X + 8, X + W - 8);
   g.globalAlpha = clamp(balao.t * 4, 0, 1);
   g.fillStyle = AZUL; g.fillRect(X, Y, W, H); g.beginPath(); g.moveTo(bx - 4, Y + H); g.lineTo(bx, Y + H + 6); g.lineTo(bx + 4, Y + H); g.closePath(); g.fill();
-  txt(g, `.${nome} >`, X + 8, Y + 11, 'm', 8.5, PRETO, { sh: false });
-  ls.forEach((l, i) => txt(g, l, X + 8, Y + 25 + i * 14, 'm', 11, PRETO, { sh: false }));
+  if (nome) txt(g, `.${nome} >`, X + 8, Y + 11, 'm', 8.5, PRETO, { sh: false });
+  ls.forEach((l, i) => txt(g, l, X + 8, Y + (nome ? 25 : 13) + i * 14, 'm', 11, PRETO, { sh: false }));
   g.globalAlpha = 1;
 }
 const PRO = { etapa: 'sentado', trava: false, fechado: false, closeK: 1, t: 0, pag: 0, linhas: [], plano: '', n: 0, espera: 0, hold: 0, t0: 0, pularT: 0, fala: null, falaN: 0, teclaT: 0, mesa: null, cast: [], props: null, carta: null, rota: new Map() };
@@ -5300,7 +5474,9 @@ function drawPrologo(dt, t) {
   const pular = entrada === 'controle' ? 'MENU' : entrada === 'toque' ? '?' : 'ESC';
   if (PRO.pularT > 0) subtitle(`${pular} DE NOVO PARA PULAR A INTRO`, 100); else txt(g, `${pular} PULAR`, 488, 54, 'm', 8.5, Z.greyL, { align: 'right' });
   if (PRO.etapa === 'andar') { const s = 'LEVE A CARTA AO RH', W = 30 + measure('m', 10, s), X = 256 - W / 2; pill(g, X, 52, W, 18, [X + 20]); icon(g, 'note', X + 6, 57, 1.6); txt(g, s, X + 25, 64.5, 'm', 10); }
-  if (PRO.etapa === 'andar') drawSinal(t, (PRO.rota.get(ck(Math.floor(player.x / L.C), Math.floor(player.z / L.C))) ?? 0) * L.C); // pelo caminho: em linha reta, o U enganaria
+  // a Orientação do prólogo (Campanha → Prólogo → Orientação, ajustes.navegacao): as barrinhas medem pelo caminho (em linha reta, o U
+  // enganaria); os outros estilos são os do jogo, até a mesa do RH (navAlvos). Sem lanterna no prólogo: a trilha "sob a lanterna" fica sempre acesa
+  if (PRO.etapa === 'andar') { if (navTem('sinal')) drawSinal(t, (PRO.rota.get(ck(Math.floor(player.x / L.C), Math.floor(player.z / L.C))) ?? 0) * L.C); drawNav(dt, t); }
   if (PRO.etapa === 'andar' && entrada !== 'toque') { keycap(g, 'M', 24, 46); txt(g, 'MAPA', 24 + keyW('M', 14) + 4, 56.5, 'm', 9, Z.greyL); }
   if (PRO.etapa === 'sentado' || PRO.etapa === 'andar') drawNarrador();
   if (sentado && (PRO.pag > 0 || PRO.n >= PRO.plano.length)) { const w = keyW('WASD', 14); keycap(g, 'WASD', 488 - w, 446); txt(g, 'LEVANTAR', 488, 474, 'm', 8.5, Z.cream, { align: 'right' }); } // no canto: não cobre a cena
@@ -5786,11 +5962,63 @@ function montarTitulo() {
   TIT.aves = Array.from({ length: Math.max(0, AB.aves | 0) }, () => { const b = criarAve((1.15 + r() * .3) * AB.aves_tamanho, mat, grp); b.g.visible = false; b.voa = false; return b; });
   const POMBOS_X = [9.4, 11.5, 26, 35.6, 18.2, 30.4, 4.6, 44];
   TIT.pombos = (AB.pombos ? POMBOS_X.slice(0, AB.pombos_n | 0) : []).map(px => { const b = criarAve(.72, mat, pg); poseAve(b, AVE_POUSO); b.g.position.set(px, TIT.Y1 + .75 + .1, -.5); b.g.rotation.y = r() * 6.3; b.ph = r() * 6.3; return b; });
+  montarPedestres(pg);
 
   scene.add(grp, ceu); TIT.grp = grp; TIT.ceu = ceu;
 }
+/* PEDESTRES — gente do elenco andando na calçada da abertura (Forja → Jogo → Abertura → Cena 3D → Pedestres na calçada).
+   Tamanho real: o rig e a malha dos níveis (1,75 m), na escala do prédio (andares de 3,15 m) — nada é esticado.
+   Entram e saem fora do quadro; cada um toca o andar dele (Elenco → Animação) no ritmo do chão (vPe). */
+const PED_RIGS = new Map(); // id → pessoa: monta uma vez e é reaproveitada ao remontar a cena (a malha é a mesma do jogo)
+function pedRig(id) {
+  if (PED_RIGS.has(id)) return PED_RIGS.get(id);
+  const q = id === '_protagonista' ? (ELENCO.protagonista ? { anim: ELENCO.protagonista_anim } : null) : (ELENCO.equipe || []).find(x => x.id === id);
+  if (!q) { PED_RIGS.set(id, null); return null; }
+  const rig = buildHumanoid(.16), M = id === '_protagonista' ? window.PLAYER_MODEL : (window.CREW_MODELS || []).find(m => m.id === id);
+  if (M) vestirModelo(rig, M);
+  rig.anim = mapaAnim(q.anim); if (rig.lamp) rig.lamp.visible = false; if (rig.cup) rig.cup.visible = false;
+  const mats = []; // material próprio (a textura continua a do jogo): cada pedestre aparece e some sozinho
+  rig.root.traverse(m => { if (m.isMesh && m !== rig.lamp && m !== rig.cup) { m.material = m.material.clone(); mats.push(m.material); m.frustumCulled = false; } });
+  const an = new Animator(rig); an.play('Walk_Neutral', { fade: 0 });
+  const p = { id, rig, an, mats, anda: false }; PED_RIGS.set(id, p); return p;
+}
+function pedAlfa(p, a) { for (const m of p.mats) { m.opacity = a; m.transparent = a < .999; m.depthWrite = a > .5; } }
+function montarPedestres(pg) {
+  TIT.ped = []; TIT.pedT = AB.pedestres_intervalo * .5; TIT.pedG = null;
+  if (!AB.pedestres) return;
+  const g = new THREE.Group(); pg.add(g); TIT.pedG = g;
+  for (const id of AB.pedestres_quem || []) { const p = pedRig(id); if (!p) continue; p.anda = false; p.rig.root.visible = false; g.add(p.rig.root); TIT.ped.push(p); }
+  // a abertura já começa com gente andando: metade do máximo espalhada pela calçada, cada um num ponto do caminho
+  const x0 = -15.5, x1 = AB.predio_comprimento + 7.5, n = Math.min(TIT.ped.length, Math.max(1, Math.ceil((AB.pedestres_n | 0) / 2)));
+  for (let k = 0; k < n; k++) { const livres = TIT.ped.filter(p => !p.anda); pedEntra(livres[Math.floor(Math.random() * livres.length)], x0, x1, x0 + (x1 - x0) * (k + .2 + Math.random() * .6) / n); }
+}
+function pedEntra(p, x0, x1, x) { // começa a andar: numa ponta (x vazio) ou já no meio do caminho
+  const s = Math.random() < .5 ? 1 : -1, z = 2.2 + Math.random() * 5;
+  Object.assign(p, { anda: true, x: x ?? (s > 0 ? x0 : x1), z, s, v: (1.15 + Math.random() * .3) * AB.pedestres_vel, fim: s > 0 ? x1 : x0 });
+  p.rig.root.visible = true; p.rig.root.rotation.y = s * Math.PI / 2; p.an.t = Math.random() * .9; pedAlfa(p, x == null ? 0 : 1); // cada um no seu passo
+}
+function updatePedestres(dt) {
+  if (!TIT.pedG || !TIT.ped.length) return;
+  const x0 = -15.5, x1 = AB.predio_comprimento + 7.5; // as pontas da calçada (montarPredio): ninguém pisa na grama
+  TIT.pedT -= dt;
+  if (TIT.pedT <= 0) {
+    TIT.pedT = AB.pedestres_intervalo * (.6 + Math.random() * .8);
+    const livres = TIT.ped.filter(p => !p.anda);
+    if (livres.length && TIT.ped.length - livres.length < Math.max(1, AB.pedestres_n | 0)) pedEntra(livres[Math.floor(Math.random() * livres.length)], x0, x1);
+  }
+  for (const p of TIT.ped) {
+    if (!p.anda) continue;
+    p.x += p.s * p.v * dt; p.rig.root.position.set(p.x, .03, p.z);
+    const vp = vPe(p.an.cur); p.an.speed = vp > .2 ? clamp(p.v / vp, .35, 2.4) : p.v / 1.3; // o pé acompanha o chão
+    p.an.update(dt);
+    const resta = p.s * (p.fim - p.x), andou = Math.abs(x1 - x0) - resta; // aparece nos 2 primeiros metros e some nos 2 últimos
+    pedAlfa(p, clamp(Math.min(andou, resta) / 2, 0, 1));
+    if (resta <= 0) { p.anda = false; p.rig.root.visible = false; }
+  }
+}
 function desmontarTitulo() { // a prévia da Forja mudou a cena: joga fora e remonta com os parâmetros novos
   if (!TIT.grp) return;
+  TIT.pedG?.parent?.remove(TIT.pedG); TIT.pedG = null; // os pedestres ficam (PED_RIGS): a malha deles é a do jogo, não se descarta
   for (const o of [TIT.grp, TIT.ceu]) { scene.remove(o); o.traverse(m => { m.geometry?.dispose(); for (const x of [].concat(m.material || [])) { x.map?.dispose(); x.uniforms?.ceuTex?.value?.dispose(); x.dispose(); } }); }
   TIT.grp = TIT.ceu = null; TIT.aves = []; TIT.pombos = [];
   if (TIT.on) { montarTitulo(); setTitulo(true); }
@@ -5803,7 +6031,7 @@ function remontarCenario() { // árvores, cidade e o topo das torres: só o grup
 }
 const AB_CENARIO = /^(arvores_|cidade_|torre_transmissao$|topo_cidade_)/;
 // o que só muda o que é desenhado por cima, a luz, a câmera ou o pós: não remonta a cena
-const AB_REMONTA = /^(predio_|postes_|chao_|ceu_(topo|meio|horiz)$|nuvem_(?!balanco$|vel$)|nuvens$|aves$|aves_(tamanho|cor)$|pombos|arvores_|cidade_|torre_|topo_|objetos$)/;
+const AB_REMONTA = /^(predio_|postes_|chao_|ceu_(topo|meio|horiz)$|nuvem_(?!balanco$|vel$)|nuvens$|aves$|aves_(tamanho|cor)$|pombos|pedestres(_quem)?$|arvores_|cidade_|torre_|topo_|objetos$)/;
 // a aba Jogo → Abertura da Forja mostra o jogo num iframe e manda os ajustes ainda não salvos por mensagem
 addEventListener('message', (e) => {
   const novo = e.data && e.data.forjaAbertura; if (!novo || e.origin !== location.origin) return;
@@ -5857,6 +6085,7 @@ function updateTitulo(dt, t) {
     poseAve(b, _p);
   }
   for (const b of TIT.pombos) { b.g.rotation.x = Math.sin(t * 1.4 + b.ph) > .92 ? .4 : -.2; if (Math.sin(t * .3 + b.ph) > .96) b.g.rotation.y += dt * 2; } // ciscam e olham em volta
+  updatePedestres(dt);
 }
 // a luz principal da abertura (TitleScene._ajustar_luz): poste (lâmpada que ilumina em volta) ou holofote (cone apontado
 // pela direção do sol). Usa as duas luzes que o jogo já tem e que ficam apagadas no título (selfLight e a lanterna)
@@ -5864,7 +6093,7 @@ const _luzT = { usada: false, f: new THREE.Vector3() };
 function luzTitulo(on) {
   const tipo = on ? AB.luz_tipo : 'sol';
   if (tipo === 'sol') {
-    if (_luzT.usada) { _luzT.usada = false; selfLight.color.set(0xffffff); selfLight.intensity = 7.5; selfLight.distance = 4.2; selfLight.decay = 2;
+    if (_luzT.usada) { _luzT.usada = false; selfLight.color.set(0xffffff); selfLight.intensity = 7.5; selfLight.distance = 4.2; selfLight.decay = HEAD_DECAY;
       spot.color.set(0xffffff); spot.distance = 15; spot.angle = .46; spot.penumbra = .5; spot.decay = 1.4; spot.castShadow = true; spot.intensity = 0; }
     return;
   }
@@ -7196,24 +7425,25 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyN' && !e.shiftKey) { abreEditor('som'); return; }
     if (e.shiftKey && e.code === 'KeyP') { keys.clear(); salvarNivel(); return; }
   }
-  if (CI.on) { CI.tecla(e); e.preventDefault(); return; } // a cutscene de imagens tocando
+  if (CI.on) { CI.tecla(e); e.preventDefault(); return; }
+  if (CI.carregando > 0) { e.preventDefault(); return; } // a cutscene está chegando: nenhuma tecla passa para o jogo // a cutscene de imagens tocando
   if (game === 'levels') { levelKey(e.code); return; }
   if (game === 'cut') { if (['Enter', 'Space', 'KeyE', 'Escape'].includes(e.code) && !e.repeat) cutPula(); return; }
   if (game === 'play' && L.prologo && prologoKey(e)) return;
-  if (e.code === 'KeyL' && !e.repeat && (game === 'title' || game === 'play')) { levelsFrom = game; levelSel = Math.max(0, levelN); game = 'levels'; return; }
+  if (e.code === 'KeyL' && !e.repeat && (game === 'title' || game === 'play')) { levelsFrom = game; levelSel = clamp(Math.max(0, levelLista().indexOf(levelN)), 0, levelMenu() - 1); game = 'levels'; return; }
   if (e.code === 'Minus' || e.code === 'NumpadSubtract') { musicSet(musicVol - .1); showMsg(`volume ${Math.round(musicVol * 100)}%`, 1.2); }
   if (e.code === 'Equal' || e.code === 'NumpadAdd') { musicSet(musicVol + .1); showMsg(`volume ${Math.round(musicVol * 100)}%`, 1.2); }
   if (e.code === 'Digit0' && !e.repeat) { musicMuted = !musicMuted; musicApply(); showMsg(musicMuted ? 'volume mudo' : `volume ${Math.round(musicVol * 100)}%`, 1.2); }
   if (e.code === 'KeyT' && !e.repeat) { COR.reg.mistura = COR.reg.mistura > .3 ? .1 : .5; mudou(); } // alterna: pares livres × pares próximos
   if (game === 'title' && (e.code === 'Enter' || e.code === 'Space')) { startPrologo(); sfx('iniciar'); return; } // ESC pula; morrer e reiniciar vai direto ao Nível 0
   if (game === 'end' && endT > 2.5 && (e.code === 'Enter' || e.code === 'Space')) { newRun(); return; }
-  if (game === 'note' && ['KeyE', 'Enter', 'Escape', 'Space'].includes(e.code)) { keys.delete('KeyE'); game = 'play'; noteOpen = -1; return; }
+  if (game === 'note' && ['KeyE', 'Enter', 'Escape', 'Space'].includes(e.code)) { keys.delete('KeyE'); game = 'play'; noteOpen = -1; memFechou(); return; }
   if (game === 'map' && (e.code === 'KeyM' || e.code === 'Escape')) { game = 'play'; return; }
   if (game === 'help' && (e.code === 'KeyH' || e.code === 'Escape')) { game = 'play'; return; }
   if (game !== 'play') return;
   if (e.code === 'KeyM') game = 'map';
   if (e.code === 'KeyH') game = 'help';
-  if (NAV.modo === 'trilha' && NAV.trilha_quando === 'tecla' && e.code === NAV.tecla && !e.repeat) navTrilha();
+  if (navTem('trilha') && NAV.trilha_quando === 'tecla' && e.code === NAV.tecla && !e.repeat) navTrilha();
   if (e.code === 'KeyF') { if (!player.temLanterna) { showMsg('sem lanterna'); return; } player.lanterna = !player.lanterna; sfx('lanterna'); }
   if (e.code === 'KeyR') drink();
   if (e.code === 'KeyG') throwCup();
@@ -7491,6 +7721,7 @@ function gpParar() {
   if (GP.grp) { scene.remove(GP.grp); GP.grp.traverse(m => { m.geometry?.dispose?.(); }); }
   Object.assign(GP, { on: false, rec: null, grp: null, els: {}, def: {}, pegos: {}, usados: {}, usadas: new Set(), carrega: {}, regras: [], scripts: [], t: 0, entExtra: 0,
     pausa: 0, luzT: 0, falou: new Set(), venceu: false, trancada: false, feito: false, progresso: 0, extra: 0, texto: '', trava: false, dim: 0 });
+  navNoVeiculo(false);
   exitGrp.visible = true;
 }
 // o Main da Godot criava um por nível (start_level): aqui, ao começar o nível da campanha que tem receita
@@ -7645,7 +7876,7 @@ const GP_API = {
   direcao: () => { let x = (keys.has('KeyD') || keys.has('ArrowRight')) - (keys.has('KeyA') || keys.has('ArrowLeft')), z = (keys.has('KeyS') || keys.has('ArrowDown')) - (keys.has('KeyW') || keys.has('ArrowUp'));
     if (stick.on) { x += stick.x; z += stick.z; } x += pad.x; z += pad.z; return { x, z }; },
   livre: (x, z, r = .4) => isFree(x, z, r) && (!MUNDO_F || MUNDO_F.livre(x, z, r)), // colisão do mundo (paredes, móveis)
-  travar: (sim) => { GP.trava = !!sim; }, distancia: (a, b) => Math.hypot((a.x ?? a.position.x) - (b.x ?? b.position.x), (a.z ?? a.position.z) - (b.z ?? b.position.z)),
+  travar: (sim) => { GP.trava = !!sim; navNoVeiculo(sim); }, distancia: (a, b) => Math.hypot((a.x ?? a.position.x) - (b.x ?? b.position.x), (a.z ?? a.position.z) - (b.z ?? b.position.z)),
   som: (id) => sfx(id), sanidade: (v) => { player.san = clamp(player.san + v, 0, 100); }, pilha: (v) => { player.bat = clamp(player.bat + v, 0, 100); },
 };
 
@@ -7832,8 +8063,14 @@ CI.evento = function (nome, info = {}) {
     if (+(g.espera || 0) > 0) setTimeout(() => CI.tocar(c.id), g.espera * 1000); else CI.tocar(c.id);
   }
 };
+CI.carregando = 0; // cutscenes pedidas que ainda estão chegando: o jogo já espera por elas
+CI.ocupado = () => CI.on || CI.carregando > 0; // o jogo (e o prólogo) para enquanto uma cutscene carrega ou toca
 CI.tocar = async function (cid) {
   if (!cid) return false;
+  if (CI.on) { CI.fila.push(cid); return true; }
+  CI.carregando++; try { return await CI._tocar(cid); } finally { CI.carregando--; }
+};
+CI._tocar = async function (cid) {
   if (CI.on) { CI.fila.push(cid); return true; }
   let d; try { const r = await fetch(`cutscenes/${cid}/cutscene.json`, { cache: 'no-store' }); if (!r.ok) throw 0; d = await r.json(); } catch { console.warn('cutscene não encontrada: ' + cid); return false; }
   if (!(d.planos || []).length) return false;
@@ -7968,12 +8205,12 @@ function frame() {
   if (MOS) { MOS.passo(dt, t); return; } // o mostruário da Forja: só o bicho
   let gdt = dt; if (hitStop > 0) { hitStop -= dt; gdt = 0; } // hit-stop: o andarilho e as criaturas congelam no golpe; câmera, tremor e som seguem
   padUpdate(); touchUpdate();
-  if (!CI.on) gpQuadro(gdt);
-  if (game === 'play' && !editorSom && !CI.on) { stats.tempo += dt; levelT += dt; updatePlayer(gdt, t); updateEntities(gdt, t); updateNoises(dt); bvQuadro(gdt); updateCat(dt, t); updateCrows(dt, t); updateInseridos(); }
+  if (!CI.ocupado()) gpQuadro(gdt);
+  if (game === 'play' && !editorSom && !CI.ocupado()) { stats.tempo += dt; levelT += dt; updatePlayer(gdt, t); updateEntities(gdt, t); updateNoises(dt); bvQuadro(gdt); updateCat(dt, t); updateCrows(dt, t); updateInseridos(); }
   updateTitulo(dt, t);
   if (VIT.on) vitrineUpdate(dt);
   if (BANCADA && game === 'play') { player.san = 100; spawnT = 1e9; for (const e of entities) scene.remove(e.rig.root); entities.length = 0; } // a bancada: só o lugar
-  if (L.prologo && !editorSom) updatePrologo(dt, t);
+  if (L.prologo && !editorSom && !CI.ocupado()) updatePrologo(dt, t); // a narração e a cena só começam quando a cutscene do começo acaba
   for (const ch of chunks.values()) for (const v of ch.vents || []) if (v.rpm) v.m.rotation.y -= v.rpm / 60 * Math.PI * 2 * dt; // as pás dos ventiladores
   updateRooms(dt, t); updateRoomFlicker(dt, t); updateWoman(dt, t); updateCorner(dt, t); updateBrotos(dt, t); updateBalloons(dt, t); updateRoses(dt);
   if (game === 'trans') {
@@ -8060,6 +8297,7 @@ function cameraAndRender(dt, t) {
 
   CUT.uCutK.value = Math.tan(pitch); CUT.uCutW.value = cc ? 1.5 : 1; CUT.uPlayer.value.set(cc ? focoX : title || closeK > .25 ? -9999 : player.x, 0, cc ? focoZ : player.z); // na primeira cena, nada é recortado: o encosto da cadeira faz parte da imagem
   selfLight.position.set(focoX + camC.lx * closeK, 2.1 + (camC.ly - 2.1) * closeK, focoZ + camC.lz * closeK); // na primeira cena, a luz vem do lado do terminal e acha o rosto selfLight.intensity = title ? 0 : 7.5 + (PRO_CAM.luz - 7.5) * closeK;
+  luzesCabeca(title);
   spot.position.set(player.x + aimX * .3, 1.25, player.z + aimZ * .3); spot.target.position.set(player.x + aimX * 6, .2, player.z + aimZ * 6);
   if (title || player.dead) spot.intensity = 0;
   luzTitulo(title && TIT.on);
@@ -8094,7 +8332,7 @@ function cameraAndRender(dt, t) {
   else if (game === 'levels') drawLevels();
   else if (game === 'cut' || (game === 'trans' && CC.on)) drawCut(dt, t);
   else if (L.prologo) drawPrologo(dt, t);
-  else { drawHUD(dt, t); if (game === 'note') drawNote(); if (game === 'end') drawEnd(dt, t); }
+  else { drawHUD(dt, t); if (MEM.mostra && game === 'play') drawColec(); if (game === 'note') drawNote(); if (game === 'end') drawEnd(dt, t); }
   temaCena();
   if (!title && TIT.saiT > 0 && AB.capa_sai > 0) drawTitle(t, TIT.saiT / AB.capa_sai); // a capa sumindo por cima do começo do jogo
   if (game === 'play' || editorSom === 'txt') { drawBalao(dt); drawInserido(dt); }
@@ -8224,7 +8462,7 @@ addEventListener('message', (ev) => {
     if (f.teclas) { INTERFACE.teclas = { ...f.teclas }; aplicaTeclas(); }
     if (f.moldura) { Object.assign(MOLD, f.moldura); aplicaMoldura(); }
     if (f.volume) { VOL_MODO = f.volume; volMostra(); }
-    if (f.nav) { const q0 = NAV.trilha_quando; NAV = { ...NAV_PADRAO, ...f.nav }; if (q0 !== NAV.trilha_quando) { NAVT.ate = 0; NAVT.lig = 0; } NAVT.refaz = 0; }
+    if (f.nav) { NAV_GERAL = { ...NAV_PADRAO, ...f.nav }; navAplicaNivel(); }
     if (f.cores || f.fontes) volEstilo();
     if (f.textos) TXT.troca = { ...f.textos };
   }
@@ -8263,7 +8501,7 @@ if (BANCADA) {
     try { parent.postMessage({ forjaPick: { ...(melhor || {}), u: (ev.clientX - r.left) / r.width, v: (ev.clientY - r.top) / r.height } }, location.origin); } catch (e) { }
   });
 }
-window.DBG = { get MUNDO_F() { return MUNDO_F; }, get GP() { return GP; }, MALHA_CRI, buildTripod, buildFlock, partesRigidas, animarGuara, atitudesMagro, entities, addEntity, sombras, get hitStop() { return hitStop; }, vPe, T, EXIT, exitGrp, updateChunks, collide, cellNbrs, bfsPath, kindAt, roomAt, LEVELS, levelDef, get L() { return L; }, prig, isFree, segBlocked, chunks, placeCorner, tx, get cantoT() { return cantoT; }, teSalva, vesteEquipe, vesteMulher, Animator, applyPose, samplePose, typingPose, CORNER_POSE, updatePrologo, updateCorner, COLEGAS, MULHER, CUTS, CUT_MULHER, TXT, EQUIPE, PRO, teSerial, teAplica, get corner() { return corner; }, get balao() { return balao; }, get woman() { return woman; }, player, cutMulher, poeCorner, teclas: keys, startPrologo, startLevel, abreEditor, get game() { return game; }, set game(v) { game = v; }, gravaSalvo, THREE, scene, camera, renderer, CC, CUTS, cutPadrao, cutInicia, cutPula, cutToca, cutVaiNivel, cutSalva, goDeeper, cutMonta, get cutPlano() { return cutPlano; }, updateEntities, wavDe, SOM, VOZES, CAM, somCarrega, somEscolheSlot, somSalva, somEvento, musicaDoNivel, envFaixa, somFa, somClipeCanais, get somOnda() { return ondaAt; }, get entK() { return entK; }, prevToca, get cabeca() { return cabeca; }, SFX, SFX_PADRAO, AMBI, sfx, tocaPatch, fxRender, fxSalva, abreEditor, get editorSom() { return editorSom; }, get fxId() { return fxId; }, BLUR, BLUR_PADRAO, lensMat, pad, get padAtivo() { return entrada === 'controle'; }, get entrada() { return entrada; }, nav, navPara, isFree, telaMundo, get touchBox() { return touchBox; }, get game() { return game; }, get zoom() { return zoom; }, get aim() { return [aimX, aimZ]; }, renderer, ditherRT, get saidaRT() { return tempRT[tempI]; }, SNAP, camera, crtMat, tempMat, pSwatches, applyPalette, paletteFromImage, ditherMat, SALVO, EDIT, PAL, LISTA_PAL, escolhePaleta, mudou, ativaSlot, togglePainel, processaPaleta, get COR() { return COR; }, get slotAtivo() { return slotAtivo; }, salvarNivel, TIT, get lanternaItem() { return lanternaItem; }, prig, THREE, PRO, PRO_CAM, player, entities, stats, chunks, get L() { return L; }, get cat() { return cat; }, get woman() { return woman; }, get corner() { return corner; }, get curRoom() { return curRoom; }, burning, altered, pendingRoom, roomLookup, roomOnScreen, ignite, rebuildChunk, layout, startRoomFlicker, placeCorner, h3, get CUT() { return CUT; }, EXIT, startLevel, spawnEntity, lightLevel, chunkKind, layout, setGame: s => game = s, note: n => { noteOpen = n; stats.notas.add(n); game = 'note'; }, msg: showMsg,go: (x, z) => { player.x = x; player.z = z; }, updateTripod, makeNoise, breathHeard, startPhone, roomAt, cellNbrs, get phone() { return phone; }, get waves() { return waves.length; }, get thrown() { return thrown; } };
+window.DBG = { MEM, memPremiar, colecaoLer, get NAV() { return NAV; }, navAplicaNivel, get MUNDO_F() { return MUNDO_F; }, get CI() { return CI; }, get PRO() { return PRO; }, get GP() { return GP; }, MALHA_CRI, buildTripod, buildFlock, partesRigidas, animarGuara, atitudesMagro, entities, addEntity, sombras, get hitStop() { return hitStop; }, vPe, T, EXIT, exitGrp, updateChunks, collide, cellNbrs, bfsPath, kindAt, roomAt, LEVELS, levelDef, get L() { return L; }, prig, isFree, segBlocked, chunks, placeCorner, tx, get cantoT() { return cantoT; }, teSalva, vesteEquipe, vesteMulher, Animator, applyPose, samplePose, typingPose, CORNER_POSE, updatePrologo, updateCorner, COLEGAS, MULHER, CUTS, CUT_MULHER, TXT, EQUIPE, PRO, teSerial, teAplica, get corner() { return corner; }, get balao() { return balao; }, get woman() { return woman; }, player, cutMulher, poeCorner, teclas: keys, startPrologo, startLevel, abreEditor, get game() { return game; }, set game(v) { game = v; }, gravaSalvo, THREE, scene, camera, renderer, CC, CUTS, cutPadrao, cutInicia, cutPula, cutToca, cutVaiNivel, cutSalva, goDeeper, cutMonta, get cutPlano() { return cutPlano; }, updateEntities, wavDe, SOM, VOZES, CAM, somCarrega, somEscolheSlot, somSalva, somEvento, musicaDoNivel, envFaixa, somFa, somClipeCanais, get somOnda() { return ondaAt; }, get entK() { return entK; }, prevToca, get cabeca() { return cabeca; }, SFX, SFX_PADRAO, AMBI, sfx, tocaPatch, fxRender, fxSalva, abreEditor, get editorSom() { return editorSom; }, get fxId() { return fxId; }, BLUR, BLUR_PADRAO, lensMat, pad, get padAtivo() { return entrada === 'controle'; }, get entrada() { return entrada; }, nav, navPara, isFree, telaMundo, get touchBox() { return touchBox; }, get game() { return game; }, get zoom() { return zoom; }, get aim() { return [aimX, aimZ]; }, renderer, ditherRT, get saidaRT() { return tempRT[tempI]; }, SNAP, camera, crtMat, tempMat, pSwatches, applyPalette, paletteFromImage, ditherMat, SALVO, EDIT, PAL, LISTA_PAL, escolhePaleta, mudou, ativaSlot, togglePainel, processaPaleta, get COR() { return COR; }, get slotAtivo() { return slotAtivo; }, salvarNivel, TIT, get lanternaItem() { return lanternaItem; }, prig, THREE, PRO, PRO_CAM, player, entities, stats, chunks, get L() { return L; }, get cat() { return cat; }, get woman() { return woman; }, get corner() { return corner; }, get curRoom() { return curRoom; }, burning, altered, pendingRoom, roomLookup, roomOnScreen, ignite, rebuildChunk, layout, startRoomFlicker, placeCorner, h3, get CUT() { return CUT; }, EXIT, startLevel, spawnEntity, lightLevel, chunkKind, layout, setGame: s => game = s, note: n => { noteOpen = n; stats.notas.add(n); game = 'note'; }, msg: showMsg,go: (x, z) => { player.x = x; player.z = z; }, updateTripod, makeNoise, breathHeard, startPhone, roomAt, cellNbrs, get phone() { return phone; }, get waves() { return waves.length; }, get thrown() { return thrown; } };
 iniciaPainel();
 startLevel(-1); banner = null; game = 'title'; // ao fundo do título, o escritório do último dia
 // Campanha → ▶ Jogar este nível (?nivel=N) e ▶ Testar o prólogo (?prologo): depois do título montado, senão ele cobria o nível

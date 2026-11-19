@@ -75,6 +75,13 @@ function receita(A, partes, M, cor, k) {
   }
 }
 
+// uma receita sozinha, na origem (o colecionável que as memórias dão): position, normal, color e bake = 1
+export function malhaDaReceita(THREE, partes, hue) {
+  const A = new Acc(), cor = (cls, v) => { const h = hue(cls) || hue('CL'); const k = v ?? 1; return [h.r * k, h.g * k, h.b * k]; };
+  receita(A, partes, { x: 0, y: 0, z: 0, s: 1, co: 1, si: 0 }, cor, 1);
+  return A.vazio() ? null : A.geo(THREE);
+}
+
 // ------------------------------------------------------------------------------------------------ o mundo
 // N = nivel.json; D = { THREE, hue(cls) → THREE.Color, fbm, h3, semente, par(grupo, chave, padrão), L (a definição do nível), modelos: {eid: THREE.Object3D} }
 export function criarMundo(N, D) {
